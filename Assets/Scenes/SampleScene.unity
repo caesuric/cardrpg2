@@ -171,8 +171,8 @@ MonoBehaviour:
   bgPrefab: {fileID: 2759073030633938860, guid: d47bdac3b6c903144bcf9dc22478f8ec,
     type: 3}
   letterCollection: {fileID: 1087578219}
-  width: 40
-  height: 30
+  width: 80
+  height: 60
   xOffset: 6
   yOffset: 5
 --- !u!1 &519420028

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4634245295255659320}
   - component: {fileID: 8258625644599905746}
   m_Layer: 0
-  m_Name: Test Letter
+  m_Name: Letter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 5064162025270870762}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -5.49, y: 4.3, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -50,7 +50,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 99d124f1abdb8dd40b6eddbb31daf843, type: 3}
+  - {fileID: 2100000, guid: 46fe7167b27133a4ebc8597c9cd06d5a, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -89,7 +89,7 @@ TextMesh:
   m_FontSize: 30
   m_FontStyle: 0
   m_RichText: 1
-  m_Font: {fileID: 12800000, guid: 99d124f1abdb8dd40b6eddbb31daf843, type: 3}
+  m_Font: {fileID: 12800000, guid: 46fe7167b27133a4ebc8597c9cd06d5a, type: 3}
   m_Color:
     serializedVersion: 2
     rgba: 4294967295

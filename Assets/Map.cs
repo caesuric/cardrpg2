@@ -12,39 +12,117 @@ public class Map : MonoBehaviour {
     private bool initialized = false;
     public static Map instance = null;
 
-    // Start is called before the first frame update
+    public int framesToCount = 300;
+    private List<float> counts = new List<float>();
+
+
     void Start() {
         instance = this;
     }
 
+    private int AverageCount() {
+        var total = 0f;
+        foreach (var item in counts) total += item;
+        total /= counts.Count;
+        return (int)Mathf.Floor(total);
+    }
+
     void Update() {
+        //fps tracking
+        counts.Add(Mathf.Floor(1f / Time.unscaledDeltaTime));
+        if (counts.Count > framesToCount) counts.RemoveAt(0);
+
         if (!initialized) {
             initialized = true;
             FillMap();
             DigStartingRoom();
             AddRooms();
             Draw();
-            //var output = "";
-            //for (int x = 0; x < layout.GetLength(0); x++) {
-            //    for (int y = 0; y < layout.GetLength(1); y++) {
-            //        output += layout[x, y] + "  ";
-            //    }
-            //    output += "\n";
-            //}
-            //Debug.Log(output);
         }
     }
 
+    private void PrintMap() {
+        var output = "";
+        for (int x = 0; x < layout.GetLength(0); x++) {
+            for (int y = 0; y < layout.GetLength(1); y++) {
+                output += layout[x, y] + "  ";
+            }
+            output += "\n";
+        }
+        Debug.Log(output);
+    }
+
     public void Draw() {
-        for (int x = posX - 20; x < posX + 20; x++) {
-            for (int y = posY - 15; y < posY + 15; y++) {
-                if (Visible(x, y)) VirtualConsole.Set(x - posX + 20, y - posY + 15, Get(x, y));
-                else if (Seen(x,y)) VirtualConsole.Set(x - posX + 20, y - posY + 15, Get(x, y), 0.25f, 0.25f, 0.25f);
-                else VirtualConsole.Set(x - posX + 20, y - posY + 15, " ");
+        DrawMap();
+        DrawInterface();
+    }
+
+    private void DrawMap() {
+        var halfWidth = VirtualConsole.instance.width / 2;
+        var halfHeight = ((VirtualConsole.instance.height-15) / 2)+15;
+        for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
+            for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
+                if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y));
+                else if (Seen(x,y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y), 0.25f, 0.25f, 0.25f);
+                else VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, " ");
             }
         }
-        VirtualConsole.Set(20, 15, "@");
+        VirtualConsole.Set(halfWidth, halfHeight, "@");
     }
+
+    private void DrawInterface() {
+        DrawCards();
+        DrawFPS();
+    }
+
+    private void DrawCards() {
+        for (int x = 0; x < VirtualConsole.instance.width; x++) {
+            for (int y = 0; y < 15; y++) {
+                VirtualConsole.Set(x, y, " ");
+            }
+        }
+        for (int x = 0; x < VirtualConsole.instance.width; x++) {
+            VirtualConsole.Set(x, 0, "\u2550");
+            VirtualConsole.Set(x, 15, "\u2550");
+        }
+        for (int y = 0; y < 15; y++) {
+            VirtualConsole.Set(0, y, "\u2551");
+            VirtualConsole.Set(VirtualConsole.instance.width - 1, y, "\u2551");
+        }
+        VirtualConsole.Set(0, 0, "\u255a");
+        VirtualConsole.Set(0, 15, "\u2554");
+        VirtualConsole.Set(VirtualConsole.instance.width - 1, 0, "\u255d");
+        VirtualConsole.Set(VirtualConsole.instance.width - 1, 15, "\u2557");
+        DrawIndividualCards(5);
+    }
+
+    private void DrawIndividualCards(int count) {
+        int cardSize = (VirtualConsole.instance.width - 2) / count;
+        int sidePadding = (VirtualConsole.instance.width - 1) % count / 2;
+        for (int i = 0; i < count; i++) {
+            for (int x = sidePadding + (cardSize * i) + 1; x < (cardSize * (i + 1)) + sidePadding; x++) {
+                VirtualConsole.Set(x, 1, "\u2550");
+                VirtualConsole.Set(x, 14, "\u2550");
+            }
+            for (int y = 1; y < 15; y++) {
+                VirtualConsole.Set(sidePadding + (cardSize * i) + 1, y, "\u2551");
+                VirtualConsole.Set((cardSize * (i + 1)) - 1 + sidePadding, y, "\u2551");
+            }
+            VirtualConsole.Set((cardSize * i) + 1 + sidePadding, 1, "\u255a");
+            VirtualConsole.Set((cardSize * i) + 1 + sidePadding, 14, "\u2554");
+            VirtualConsole.Set((cardSize * (i + 1)) - 1 + sidePadding, 1, "\u255d");
+            VirtualConsole.Set((cardSize * (i + 1)) - 1 + sidePadding, 14, "\u2557");
+            VirtualConsole.Write("Title", (cardSize * i) + 2 + sidePadding, 12, cardSize - 4, 1);
+            VirtualConsole.Write("The quick red fox jumped over the lazy dogs. Black sphinx of quartz, heed my vow.", (cardSize * i) + 2 + sidePadding, 3, cardSize - 4, 8);
+        }
+    }
+
+    private void DrawFPS() {
+        var fps = AverageCount().ToString();
+        fps += " FPS";
+        VirtualConsole.Write(fps, VirtualConsole.instance.width - 7, VirtualConsole.instance.height - 2, 7, 1, 0, 1, 0, 0.5f, 0.5f, 0.5f);
+    }
+
     private void FillMap() {
         for (int x = 0; x < layout.GetLength(0); x++) {
             for (int y = 0; y < layout.GetLength(1); y++) {
