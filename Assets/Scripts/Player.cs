@@ -28,8 +28,35 @@ public class Player {
                 }
             }
         };
-        for (int i = 0; i < 10; i++) deck.Add(new Card { template = energyBoost });
+        var firebolt = new CardTemplate() {
+            cost = 2,
+            name = "Firebolt",
+            text = "Deal 5 damage to an enemy at range 5.",
+            effects = new List<CardEffect>() {
+                new CardEffect() {
+                    type="range",
+                    value=5,
+                },
+                new CardEffect() {
+                    type="damage",
+                    value=5
+                }
+            }
+        };
+        for (int i = 0; i < 5; i++) deck.Add(new Card { template = firebolt });
+        for (int i = 0; i < 5; i++) deck.Add(new Card { template = energyBoost });
+        ShuffleDeck();
         DrawCards(5);
+    }
+
+    public void ShuffleDeck() {
+        var tempDeck = new List<Card>();
+        while (deck.Count>0) {
+            int roll = Random.Range(0, deck.Count);
+            tempDeck.Add(deck[roll]);
+            deck.RemoveAt(roll);
+        }
+        deck = tempDeck;
     }
 
     public void DrawCard() {
