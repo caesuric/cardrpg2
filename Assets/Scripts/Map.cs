@@ -22,6 +22,7 @@ public class Map : MonoBehaviour {
             FillMap();
             DigStartingRoom();
             AddRooms();
+            new Player();
             Draw();
         }
     }

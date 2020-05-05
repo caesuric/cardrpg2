@@ -2,18 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UserInterface : MonoBehaviour
-{
+public class UserInterface : MonoBehaviour {
     public static UserInterface instance;
     public int framesToCount = 300;
     private List<float> counts = new List<float>();
-    public List<Vector2> cardPositions = new List<Vector2>();
-    public List<Vector2> cardSizes = new List<Vector2>();
-    public List<Vector2> originalCardPositions = new List<Vector2>();
-    public List<bool> cardsActive = new List<bool>();
+    public List<Card> cards = new List<Card>();
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         instance = this;
     }
 
@@ -53,7 +48,7 @@ public class UserInterface : MonoBehaviour
         VirtualConsole.Set(0, 15, "\u2554");
         VirtualConsole.Set(VirtualConsole.instance.width - 1, 0, "\u255d");
         VirtualConsole.Set(VirtualConsole.instance.width - 1, 15, "\u2557");
-        if (cardPositions.Count == 0) SetUpCardPositions(5);
+        if (cards.Count == 0) SetUpCardPositions(5);
         DrawIndividualCards();
     }
 
@@ -61,17 +56,20 @@ public class UserInterface : MonoBehaviour
         int cardSize = (VirtualConsole.instance.width - 2) / count;
         int sidePadding = (VirtualConsole.instance.width - 1) % count / 2;
         for (int i = 0; i < count; i++) {
-            cardPositions.Add(new Vector2(sidePadding + (cardSize * i) + 1, 1));
-            originalCardPositions.Add(new Vector2(sidePadding + (cardSize * i) + 1, 1));
-            cardSizes.Add(new Vector2(cardSize, 14));
-            cardsActive.Add(false);
+            Card.size = new Vector2(cardSize, 14);
+            cards.Add(new Card {
+                position = new Vector2(sidePadding + (cardSize * i) + 1, 1),
+                originalPosition = new Vector2(sidePadding + (cardSize * i) + 1, 1),
+                beingDragged = false
+            });
         }
     }
 
     private void DrawIndividualCards() {
-        int cardSize = (VirtualConsole.instance.width - 2) / cardPositions.Count;
-        foreach (var position in cardPositions) {
-            var active = cardsActive[cardPositions.IndexOf(position)];
+        int cardSize = (int)Card.size.x;
+        foreach (var card in cards) {
+            var active = card.beingDragged;
+            var position = card.position;
             for (int x = (int)position.x; x < (int)position.x + cardSize; x++) {
                 for (int y = (int)position.y; y < (int)position.y + 14; y++) {
                     if (!active) VirtualConsole.Set(x, y, " ");
@@ -122,6 +120,4 @@ public class UserInterface : MonoBehaviour
         fps += " FPS";
         VirtualConsole.Write(fps, VirtualConsole.instance.width - 7, VirtualConsole.instance.height - 2, 7, 1, 0, 1, 0, 0.5f, 0.5f, 0.5f);
     }
-
-
 }
