@@ -26,31 +26,33 @@ public class Inputs : MonoBehaviour
     void Update() {
         if (cardDragged == -2) SlideCardBack();
 
-        var prevMouseDown = mouseDown;
-        if (Input.GetMouseButtonDown(0)) mouseDown = true;
-        if (Input.GetMouseButtonUp(0)) mouseDown = false;
-        if (mouseDown && !prevMouseDown && OverCard()) DragCard();
-        if (cardDragged > -1 && (oldMouseX != mouseX || oldMouseY != mouseY)) MoveCard();
-        if (prevMouseDown && !mouseDown) StopDragCard();
-        oldMouseX = mouseX;
-        oldMouseY = mouseY;
-
-        if (moved) {
-            moveTimer -= Time.deltaTime;
-            if (moveTimer <= 0) {
-                moveTimer = 0;
-                moved = false;
-            }
+        if (CombatManager.instance.inCombat) {
+            var prevMouseDown = mouseDown;
+            if (Input.GetMouseButtonDown(0)) mouseDown = true;
+            if (Input.GetMouseButtonUp(0)) mouseDown = false;
+            if (mouseDown && !prevMouseDown && OverCard()) DragCard();
+            if (cardDragged > -1 && (oldMouseX != mouseX || oldMouseY != mouseY)) MoveCard();
+            if (prevMouseDown && !mouseDown) StopDragCard();
+            oldMouseX = mouseX;
+            oldMouseY = mouseY;
         }
-        var horiz = Input.GetAxis("Horizontal");
-        var vert = Input.GetAxis("Vertical");
-        if (horiz == 0 && vert == 0) moved = false;
-        if (moved) return;
-        if (horiz > 0) MoveRight();
-        else if (horiz < 0) MoveLeft();
-        else if (vert < 0) MoveUp();
-        else if (vert > 0) MoveDown();
-
+        else {
+            if (moved) {
+                moveTimer -= Time.deltaTime;
+                if (moveTimer <= 0) {
+                    moveTimer = 0;
+                    moved = false;
+                }
+            }
+            var horiz = Input.GetAxis("Horizontal");
+            var vert = Input.GetAxis("Vertical");
+            if (horiz == 0 && vert == 0) moved = false;
+            if (moved) return;
+            if (horiz > 0) MoveRight();
+            else if (horiz < 0) MoveLeft();
+            else if (vert < 0) MoveUp();
+            else if (vert > 0) MoveDown();
+        }
     }
 
     private void SlideCardBack() {
@@ -117,9 +119,9 @@ public class Inputs : MonoBehaviour
             card.position = card.originalPosition;
             Player.instance.discard.Add(card);
             Player.instance.hand.Remove(card);
+            UserInterface.instance.SetUpCardPositions();
         }
         cardDragged = -2;
-        UserInterface.instance.SetUpCardPositions();
         Map.instance.Draw();
     }
 
@@ -163,9 +165,9 @@ public class Inputs : MonoBehaviour
     }
 
     private bool MoveValid(int x, int y) {
-        if (Map.instance.monsters[x, y] != "") return false;
-        if (Map.instance.layout[x, y] == "." || Map.instance.layout[x, y] == "+") {
-            Map.instance.layout[x, y] = ".";
+        if (Map.instance.monsters[x, y] != null) return false;
+        if (Map.instance.layout[x, y].character == "." || Map.instance.layout[x, y].character == "+") {
+            Map.instance.layout[x, y].character = ".";
             return true;
         }
         return false;

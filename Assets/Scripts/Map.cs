@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Map : MonoBehaviour {
-    public string[,] layout = new string[80, 60];
-    public string[,] monsters = new string[80, 60];
+    public DisplayCharacter[,] layout = new DisplayCharacter[80, 60];
+    public DisplayCharacter[,] monsters = new DisplayCharacter[80, 60];
     public bool[,] seen = new bool[80, 60];
     private int startingX = 0;
     private int startingY = 0;
@@ -44,6 +44,7 @@ public class Map : MonoBehaviour {
         DrawMap();
         DrawMonsters();
         UserInterface.Draw();
+        CombatManager.instance.CheckIfInCombat();
     }
 
     private void DrawMap() {
@@ -51,8 +52,11 @@ public class Map : MonoBehaviour {
         var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
         for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
-                if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y));
-                else if (Seen(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y), 0.25f, 0.25f, 0.25f);
+                DisplayCharacter dc = null;
+                if (x >= 0 && y >= 0 && x < VirtualConsole.instance.width && y < VirtualConsole.instance.height) dc = layout[x, y];
+                if (dc != null && Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
+                else if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y));
+                else if (Seen(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r / 4f, dc.color.g / 4f, dc.color.b / 4f, dc.bgColor.r / 4f, dc.bgColor.g / 4f, dc.bgColor.b / 4f);
                 else VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, " ");
             }
         }
@@ -65,7 +69,9 @@ public class Map : MonoBehaviour {
         for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
                 if (GetMonsters(x,y) == "") continue;
-                if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, GetMonsters(x,y));
+                DisplayCharacter dc = null;
+                if (x >= 0 && y >= 0 && x < VirtualConsole.instance.width && y < VirtualConsole.instance.height) dc = monsters[x, y];
+                if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
             }
         }
         VirtualConsole.Set(halfWidth, halfHeight, "@");
@@ -74,8 +80,12 @@ public class Map : MonoBehaviour {
     private void FillMap() {
         for (int x = 0; x < layout.GetLength(0); x++) {
             for (int y = 0; y < layout.GetLength(1); y++) {
-                layout[x, y] = "#";
-                monsters[x, y] = "";
+                layout[x, y] = new DisplayCharacter {
+                    character = "#",
+                    color = Color.white,
+                    bgColor = Color.black
+                };
+                monsters[x, y] = null;
                 seen[x, y] = false;
             }
         }
@@ -86,7 +96,7 @@ public class Map : MonoBehaviour {
         posY = startingY = Random.Range(3, 57);
         for (int x = startingX - 2; x < startingX + 3; x++) {
             for (int y = startingY - 2; y < startingY + 3; y++) {
-                layout[x, y] = ".";
+                layout[x, y].character = ".";
             }
         }
     }
@@ -184,7 +194,11 @@ public class Map : MonoBehaviour {
             int xRoll = Random.Range(x, x + width);
             int yRoll = Random.Range(y, y + width);
             if (Get(xRoll, yRoll) == ".") {
-                monsters[xRoll, yRoll] = "g";
+                monsters[xRoll, yRoll] = new DisplayCharacter {
+                    character = "g",
+                    color = Color.green,
+                    bgColor = Color.black
+                };
                 return;
             }
         }
@@ -196,8 +210,8 @@ public class Map : MonoBehaviour {
         // add door if necessary
         if (door) {
             int doorRoll = Random.Range(0, 2);
-            if (doorRoll == 0) layout[x, y] = "+";
-            else layout[x, y] = ".";
+            if (doorRoll == 0) layout[x, y].character = "+";
+            else layout[x, y].character = ".";
             if (facing == 0 || facing == 2) {
                 y += yStep;
                 height -= yStep;
@@ -235,7 +249,7 @@ public class Map : MonoBehaviour {
     private void DigRectangle(int x, int y, int facing, int width, int height, bool door, int minorAxisOffset, int xStep, int yStep) {
         for (int xIn = x; xIn != x + width; xIn += xStep) {
             for (int yIn = y; yIn != y + height; yIn += yStep) {
-                layout[xIn, yIn] = ".";
+                layout[xIn, yIn].character = ".";
             }
         }
         int roll = Random.Range(0, 20);
@@ -248,7 +262,7 @@ public class Map : MonoBehaviour {
         if (x1 + xq >= x2 - xq || y1 + yq >= y2 - yq) return;
         for (int xIn = x1 + xq; xIn < x2 - xq; xIn += xStep) {
             for (int yIn = y1 + yq; yIn < y2 - yq; yIn += yStep) {
-                layout[xIn, yIn] = "#";
+                layout[xIn, yIn].character = "#";
             }
         }
     }
@@ -278,23 +292,23 @@ public class Map : MonoBehaviour {
     private float RemoveLineStep(int xValue, int x1, int y1, int x2, int y2, float prevY) {
         float yValue = ((float)xValue - x1) / ((float)x2 - x1) * ((float)y2 - y1) + y1;
         if (xValue != x1 && Mathf.Abs((int)yValue - (int)prevY) > 1) RemoveVerticalLine((int)xValue, (int)prevY, (int)yValue);
-        if (xValue > 0 && yValue > 0 && xValue < layout.GetLength(0) - 1 && yValue < layout.GetLength(1) - 1) layout[xValue, (int)yValue] = ".";
+        if (xValue > 0 && yValue > 0 && xValue < layout.GetLength(0) - 1 && yValue < layout.GetLength(1) - 1) layout[xValue, (int)yValue].character = ".";
         return yValue;
     }
 
     private void RemoveVerticalLine(int x, int y1, int y2) {
         int step = -1;
         if (y2 == y1) {
-            layout[x, y1] = ".";
+            layout[x, y1].character = ".";
             return;
         }
         else if (y2 > y1) step = 1;
-        for (int yValue = y1; yValue != y2 + step; yValue += step) layout[x, yValue] = ".";
+        for (int yValue = y1; yValue != y2 + step; yValue += step) layout[x, yValue].character = ".";
     }
 
     private void FloodRemove(int x, int y) {
-        if (x > 0 && y > 0 && x < layout.GetLength(0) - 1 && y < layout.GetLength(1) - 1 && layout[x, y] == "#") {
-            layout[x, y] = ".";
+        if (x > 0 && y > 0 && x < layout.GetLength(0) - 1 && y < layout.GetLength(1) - 1 && layout[x, y].character == "#") {
+            layout[x, y].character = ".";
             FloodRemove(x - 1, y);
             FloodRemove(x + 1, y);
             FloodRemove(x, y - 1);
@@ -307,12 +321,12 @@ public class Map : MonoBehaviour {
         int qy = (y2 - y1) / 4;
         for (int xIn = x1 + qx; xIn < x2 - qx; xIn++) {
             for (int yIn = y1; yIn < y2; yIn++) {
-                layout[xIn, yIn] = ".";
+                layout[xIn, yIn].character = ".";
             }
         }
         for (int xIn = x1; xIn < x2; xIn++) {
             for (int yIn = y1 + qy; yIn < y2 - qy; yIn++) {
-                layout[xIn, yIn] = ".";
+                layout[xIn, yIn].character = ".";
             }
         }
     }
@@ -359,12 +373,13 @@ public class Map : MonoBehaviour {
 
     private string Get(int x, int y) {
         if (x < 0 || y < 0 || x >= layout.GetLength(0) || y >= layout.GetLength(1)) return " ";
-        else return layout[x, y];
+        else return layout[x, y].character;
     }
 
     private string GetMonsters(int x, int y) {
         if (x < 0 || y < 0 || x >= monsters.GetLength(0) || y >= monsters.GetLength(1)) return "";
-        else return monsters[x, y];
+        else if (monsters[x, y] == null) return "";
+        else return monsters[x, y].character;
     }
 
     public bool Visible(int x, int y) {
@@ -397,7 +412,7 @@ public class Map : MonoBehaviour {
 
     public bool BlocksSight(int x, int y) {
         var block = layout[x, y];
-        if (block == "#" || block == "+") return true;
+        if (block.character == "#" || block.character == "+") return true;
         return false;
     }
 
