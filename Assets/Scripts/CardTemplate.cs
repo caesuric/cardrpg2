@@ -10,4 +10,8 @@ public class CardTemplate {
     public int cost;
     public string text;
     public List<CardEffect> effects;
+
+    public CardTemplate() {
+        instances.Add(this);
+    }
 }

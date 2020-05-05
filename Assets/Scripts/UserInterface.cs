@@ -6,7 +6,6 @@ public class UserInterface : MonoBehaviour {
     public static UserInterface instance;
     public int framesToCount = 300;
     private List<float> counts = new List<float>();
-    public List<Card> cards = new List<Card>();
     // Start is called before the first frame update
     void Start() {
         instance = this;
@@ -48,26 +47,26 @@ public class UserInterface : MonoBehaviour {
         VirtualConsole.Set(0, 15, "\u2554");
         VirtualConsole.Set(VirtualConsole.instance.width - 1, 0, "\u255d");
         VirtualConsole.Set(VirtualConsole.instance.width - 1, 15, "\u2557");
-        if (cards.Count == 0) SetUpCardPositions(5);
         DrawIndividualCards();
     }
 
-    private void SetUpCardPositions(int count) {
-        int cardSize = (VirtualConsole.instance.width - 2) / count;
-        int sidePadding = (VirtualConsole.instance.width - 1) % count / 2;
-        for (int i = 0; i < count; i++) {
-            Card.size = new Vector2(cardSize, 14);
-            cards.Add(new Card {
-                position = new Vector2(sidePadding + (cardSize * i) + 1, 1),
-                originalPosition = new Vector2(sidePadding + (cardSize * i) + 1, 1),
-                beingDragged = false
-            });
+    public void SetUpCardPositions() {
+        int cardSize = (VirtualConsole.instance.width - 2) / 5;
+        int sidePadding = (VirtualConsole.instance.width - 1) % 5 / 2;
+        Card.size = new Vector2(cardSize, 14);
+
+        int i = 0;
+        foreach (var card in Player.instance.hand) {
+            card.position = new Vector2(sidePadding + (cardSize * i) + 1, 1);
+            card.originalPosition = card.position;
+            card.beingDragged = false;
+            i++;
         }
     }
 
     private void DrawIndividualCards() {
         int cardSize = (int)Card.size.x;
-        foreach (var card in cards) {
+        foreach (var card in Player.instance.hand) {
             var active = card.beingDragged;
             var position = card.position;
             for (int x = (int)position.x; x < (int)position.x + cardSize; x++) {
@@ -101,16 +100,18 @@ public class UserInterface : MonoBehaviour {
                 VirtualConsole.Set((int)position.x, (int)position.y + 13, "\u2554");
                 VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y, "\u255d");
                 VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y + 13, "\u2557");
-                VirtualConsole.Write("Title", (int)position.x + 1, (int)position.y + 11, cardSize - 4, 1);
-                VirtualConsole.Write("The quick red fox jumped over the lazy dogs. Black sphinx of quartz, heed my vow.", (int)position.x + 1, (int)position.y + 2, cardSize - 4, 8);
+                VirtualConsole.Write(card.template.name, (int)position.x + 1, (int)position.y + 11, cardSize - 4, 1);
+                VirtualConsole.Write("Cost: " + card.template.cost.ToString(), (int)position.x + 1, (int)position.y + 10, cardSize - 4, 1);
+                VirtualConsole.Write(card.template.text, (int)position.x + 1, (int)position.y + 2, cardSize - 4, 8);
             }
             else {
                 VirtualConsole.Set((int)position.x, (int)position.y, "\u255a", 1, 1, 1, 0, 0.5f, 0);
                 VirtualConsole.Set((int)position.x, (int)position.y + 13, "\u2554", 1, 1, 1, 0, 0.5f, 0);
                 VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y, "\u255d", 1, 1, 1, 0, 0.5f, 0);
                 VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y + 13, "\u2557", 1, 1, 1, 0, 0.5f, 0);
-                VirtualConsole.Write("Title", (int)position.x + 1, (int)position.y + 11, cardSize - 4, 1, 1, 1, 1, 0, 0.5f, 0);
-                VirtualConsole.Write("The quick red fox jumped over the lazy dogs. Black sphinx of quartz, heed my vow.", (int)position.x + 1, (int)position.y + 2, cardSize - 4, 8, 1, 1, 1, 0, 0.5f, 0);
+                VirtualConsole.Write(card.template.name, (int)position.x + 1, (int)position.y + 11, cardSize - 4, 1, 1, 1, 1, 0, 0.5f, 0);
+                VirtualConsole.Write("Cost: " + card.template.cost.ToString(), (int)position.x + 1, (int)position.y + 10, cardSize - 4, 1, 1, 1, 1, 0, 0.5f, 0);
+                VirtualConsole.Write(card.template.text, (int)position.x + 1, (int)position.y + 2, cardSize - 4, 8, 1, 1, 1, 0, 0.5f, 0);
             }
         }
     }

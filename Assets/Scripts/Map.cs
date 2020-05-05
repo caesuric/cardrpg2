@@ -23,6 +23,7 @@ public class Map : MonoBehaviour {
             DigStartingRoom();
             AddRooms();
             new Player();
+            UserInterface.instance.SetUpCardPositions();
             Draw();
         }
     }

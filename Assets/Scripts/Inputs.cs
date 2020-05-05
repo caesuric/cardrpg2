@@ -55,7 +55,7 @@ public class Inputs : MonoBehaviour
 
     private void SlideCardBack() {
         var moved = false;
-        foreach (var card in UserInterface.instance.cards) {
+        foreach (var card in Player.instance.hand) {
             var position = card.position;
             var originalPosition = card.originalPosition;
             if (position == originalPosition) continue;
@@ -73,7 +73,7 @@ public class Inputs : MonoBehaviour
     }
 
     private bool OverCard() {
-        foreach (var card in UserInterface.instance.cards) {
+        foreach (var card in Player.instance.hand) {
             var position = card.position;
             var size = Card.size;
             var x = (int)position.x;
@@ -86,7 +86,7 @@ public class Inputs : MonoBehaviour
     }
 
     private void DragCard() {
-        foreach (var card in UserInterface.instance.cards) {
+        foreach (var card in Player.instance.hand) {
             var position = card.position;
             var size = Card.size;
             var x = (int)position.x;
@@ -94,7 +94,7 @@ public class Inputs : MonoBehaviour
             var sizeX = (int)size.x;
             var sizeY = (int)size.y;
             if (mouseX >= x && mouseX < x + sizeX && mouseY >= y && mouseY < y + sizeY) {
-                cardDragged = UserInterface.instance.cards.IndexOf(card);
+                cardDragged = Player.instance.hand.IndexOf(card);
                 cardDragCoordsX = mouseX - x;
                 cardDragCoordsY = mouseY - y;
                 card.beingDragged = true;
@@ -105,14 +105,28 @@ public class Inputs : MonoBehaviour
     }
 
     private void MoveCard() {
-        UserInterface.instance.cards[cardDragged].position = new Vector2(mouseX - cardDragCoordsX, mouseY - cardDragCoordsY);
+        Player.instance.hand[cardDragged].position = new Vector2(mouseX - cardDragCoordsX, mouseY - cardDragCoordsY);
         Map.instance.Draw();
     }
 
     private void StopDragCard() {
-        UserInterface.instance.cards[cardDragged].beingDragged = false;
+        if (cardDragged < 0) return;
+        Player.instance.hand[cardDragged].beingDragged = false;
+        if (CardPlayed()) {
+            var card = Player.instance.hand[cardDragged];
+            card.position = card.originalPosition;
+            Player.instance.discard.Add(card);
+            Player.instance.hand.Remove(card);
+        }
         cardDragged = -2;
+        UserInterface.instance.SetUpCardPositions();
         Map.instance.Draw();
+    }
+
+    private bool CardPlayed() {
+        var card = Player.instance.hand[cardDragged];
+        if (card.position.y > 14) return true;
+        return false;
     }
 
 
