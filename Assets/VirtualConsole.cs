@@ -23,6 +23,8 @@ public class VirtualConsole : MonoBehaviour {
                 float xPos = (xOffset * 2 * (x + 1) / (width + 1)) - xOffset;
                 float yPos = (yOffset * 2 * (y + 1) / (height + 1)) - yOffset;
                 var go = Instantiate(bgPrefab);
+                go.GetComponent<MapBlockMouseControls>().x = x;
+                go.GetComponent<MapBlockMouseControls>().y = y;
                 go.transform.position = new Vector3(xPos, yPos, -0.25f);
                 go.transform.SetParent(letterCollection.transform);
                 backgroundBlocks[x, y] = go.GetComponent<SpriteRenderer>();
