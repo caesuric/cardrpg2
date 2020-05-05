@@ -55,9 +55,9 @@ public class Inputs : MonoBehaviour
 
     private void SlideCardBack() {
         var moved = false;
-        for (int i=0; i<Map.instance.cardPositions.Count; i++) {
-            var position = Map.instance.cardPositions[i];
-            var originalPosition = Map.instance.originalCardPositions[i];
+        for (int i=0; i<UserInterface.instance.cardPositions.Count; i++) {
+            var position = UserInterface.instance.cardPositions[i];
+            var originalPosition = UserInterface.instance.originalCardPositions[i];
             if (position == originalPosition) continue;
             moved = true;
             for (int j=0; j<4; j++) {
@@ -66,16 +66,16 @@ public class Inputs : MonoBehaviour
                 if (position.y > originalPosition.y) position = new Vector2(position.x, position.y - 1);
                 else if (position.y < originalPosition.y) position = new Vector2(position.x, position.y + 1);
             }
-            Map.instance.cardPositions[i] = position;
+            UserInterface.instance.cardPositions[i] = position;
         }
         if (moved) Map.instance.Draw();
         else cardDragged = -1;
     }
 
     private bool OverCard() {
-        for (int i=0; i<Map.instance.cardPositions.Count; i++) {
-            var position = Map.instance.cardPositions[i];
-            var size = Map.instance.cardSizes[i];
+        for (int i=0; i< UserInterface.instance.cardPositions.Count; i++) {
+            var position = UserInterface.instance.cardPositions[i];
+            var size = UserInterface.instance.cardSizes[i];
             var x = (int)position.x;
             var y = (int)position.y;
             var sizeX = (int)size.x;
@@ -86,9 +86,9 @@ public class Inputs : MonoBehaviour
     }
 
     private void DragCard() {
-        for (int i = 0; i < Map.instance.cardPositions.Count; i++) {
-            var position = Map.instance.cardPositions[i];
-            var size = Map.instance.cardSizes[i];
+        for (int i = 0; i < UserInterface.instance.cardPositions.Count; i++) {
+            var position = UserInterface.instance.cardPositions[i];
+            var size = UserInterface.instance.cardSizes[i];
             var x = (int)position.x;
             var y = (int)position.y;
             var sizeX = (int)size.x;
@@ -97,7 +97,7 @@ public class Inputs : MonoBehaviour
                 cardDragged = i;
                 cardDragCoordsX = mouseX - x;
                 cardDragCoordsY = mouseY - y;
-                Map.instance.cardsActive[i] = true;
+                UserInterface.instance.cardsActive[i] = true;
                 Map.instance.Draw();
                 return;
             }
@@ -105,12 +105,12 @@ public class Inputs : MonoBehaviour
     }
 
     private void MoveCard() {
-        Map.instance.cardPositions[cardDragged] = new Vector2(mouseX - cardDragCoordsX, mouseY - cardDragCoordsY);
+        UserInterface.instance.cardPositions[cardDragged] = new Vector2(mouseX - cardDragCoordsX, mouseY - cardDragCoordsY);
         Map.instance.Draw();
     }
 
     private void StopDragCard() {
-        Map.instance.cardsActive[cardDragged] = false;
+        UserInterface.instance.cardsActive[cardDragged] = false;
         cardDragged = -2;
         Map.instance.Draw();
     }
