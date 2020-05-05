@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Map : MonoBehaviour {
     public string[,] layout = new string[80, 60];
+    public string[,] monsters = new string[80, 60];
     public bool[,] seen = new bool[80, 60];
     private int startingX = 0;
     private int startingY = 0;
@@ -41,17 +42,30 @@ public class Map : MonoBehaviour {
 
     public void Draw() {
         DrawMap();
+        DrawMonsters();
         UserInterface.Draw();
     }
 
     private void DrawMap() {
         var halfWidth = VirtualConsole.instance.width / 2;
-        var halfHeight = ((VirtualConsole.instance.height-15) / 2)+15;
+        var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
         for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
                 if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y));
-                else if (Seen(x,y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y), 0.25f, 0.25f, 0.25f);
+                else if (Seen(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, Get(x, y), 0.25f, 0.25f, 0.25f);
                 else VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, " ");
+            }
+        }
+        VirtualConsole.Set(halfWidth, halfHeight, "@");
+    }
+
+    private void DrawMonsters() {
+        var halfWidth = VirtualConsole.instance.width / 2;
+        var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
+        for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
+            for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
+                if (GetMonsters(x,y) == "") continue;
+                if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, GetMonsters(x,y));
             }
         }
         VirtualConsole.Set(halfWidth, halfHeight, "@");
@@ -61,6 +75,7 @@ public class Map : MonoBehaviour {
         for (int x = 0; x < layout.GetLength(0); x++) {
             for (int y = 0; y < layout.GetLength(1); y++) {
                 layout[x, y] = "#";
+                monsters[x, y] = "";
                 seen[x, y] = false;
             }
         }
@@ -157,9 +172,22 @@ public class Map : MonoBehaviour {
         // attempt to dig room
         if (SpaceForRoom(x, y, facing, width, height, minorAxisOffset)) {
             DigRoom(type, x, y, facing, width, height, door, minorAxisOffset);
+            int monsterRoll = Random.Range(0, 2);
+            if (monsterRoll == 0) AddMonster(x, y, width, height);
             return true;
         }
         else return false;
+    }
+
+    private void AddMonster(int x, int y, int width, int height) {
+        while (true) {
+            int xRoll = Random.Range(x, x + width);
+            int yRoll = Random.Range(y, y + width);
+            if (Get(xRoll, yRoll) == ".") {
+                monsters[xRoll, yRoll] = "g";
+                return;
+            }
+        }
     }
 
     private void DigRoom(int type, int x, int y, int facing, int width, int height, bool door, int minorAxisOffset) {
@@ -332,6 +360,11 @@ public class Map : MonoBehaviour {
     private string Get(int x, int y) {
         if (x < 0 || y < 0 || x >= layout.GetLength(0) || y >= layout.GetLength(1)) return " ";
         else return layout[x, y];
+    }
+
+    private string GetMonsters(int x, int y) {
+        if (x < 0 || y < 0 || x >= monsters.GetLength(0) || y >= monsters.GetLength(1)) return "";
+        else return monsters[x, y];
     }
 
     public bool Visible(int x, int y) {

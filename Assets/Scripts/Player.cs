@@ -12,6 +12,8 @@ public class Player {
     public List<Card> inPlay = new List<Card>();
     public int energy = 5;
     public int actions = 4;
+    public int hp = 10;
+    public int maxHp = 10;
 
     public Player() {
         instance = this;
@@ -38,8 +40,10 @@ public class Player {
                 discard.RemoveAt(roll);
             }
         }
-        hand.Add(deck[0]);
-        deck.RemoveAt(0);
+        if (deck.Count > 0) {
+            hand.Add(deck[0]);
+            deck.RemoveAt(0);
+        }
     }
 
     public void DrawCards(int n) {

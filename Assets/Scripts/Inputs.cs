@@ -163,6 +163,7 @@ public class Inputs : MonoBehaviour
     }
 
     private bool MoveValid(int x, int y) {
+        if (Map.instance.monsters[x, y] != "") return false;
         if (Map.instance.layout[x, y] == "." || Map.instance.layout[x, y] == "+") {
             Map.instance.layout[x, y] = ".";
             return true;
