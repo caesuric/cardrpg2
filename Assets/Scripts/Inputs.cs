@@ -26,7 +26,9 @@ public class Inputs : MonoBehaviour
 
     // Update is called once per frame
     void Update() {
+        if (Player.instance.hp <= 0) return;
         if (cardDragged == -2) SlideCardBack();
+        if (mouseMode == MouseMode.Animating) Animate();
 
         if (CombatManager.instance.inCombat) {
             var prevMouseDown = mouseDown;
@@ -37,27 +39,37 @@ public class Inputs : MonoBehaviour
                 if (cardDragged > -1 && (oldMouseX != mouseX || oldMouseY != mouseY)) MoveCard();
                 if (prevMouseDown && !mouseDown) StopDragCard();
             }
-            else if (mouseMode == MouseMode.Targeting) DrawTargetingLine();
+            else if (mouseMode == MouseMode.Targeting) {
+                DrawTargetingLine();
+                if (!mouseDown && prevMouseDown) {
+                    mouseMode = MouseMode.Animating;
+                    int x = mouseX + Map.instance.posX - VirtualConsole.instance.width / 2;
+                    int y = mouseY + Map.instance.posY - (((VirtualConsole.instance.height - 15) / 2) + 15);
+                    Player.instance.FireProjectile(x, y);
+                }
+            }
             oldMouseX = mouseX;
             oldMouseY = mouseY;
         }
-        else {
-            if (moved) {
-                moveTimer -= Time.deltaTime;
-                if (moveTimer <= 0) {
-                    moveTimer = 0;
-                    moved = false;
-                }
+
+        //keyboard
+        if (moved) {
+            moveTimer -= Time.deltaTime;
+            if (moveTimer <= 0) {
+                moveTimer = 0;
+                moved = false;
             }
-            var horiz = Input.GetAxis("Horizontal");
-            var vert = Input.GetAxis("Vertical");
-            if (horiz == 0 && vert == 0) moved = false;
-            if (moved) return;
-            if (horiz > 0) MoveRight();
-            else if (horiz < 0) MoveLeft();
-            else if (vert < 0) MoveUp();
-            else if (vert > 0) MoveDown();
         }
+        var horiz = Input.GetAxis("Horizontal");
+        var vert = Input.GetAxis("Vertical");
+        if (horiz == 0 && vert == 0) moved = false;
+        if (moved) return;
+        if (CombatManager.instance.inCombat && (horiz != 0 || vert != 0)) Player.instance.actions--;
+        if (horiz > 0) MoveRight();
+        else if (horiz < 0) MoveLeft();
+        else if (vert < 0) MoveUp();
+        else if (vert > 0) MoveDown();
+        if (Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
     }
 
     private void SlideCardBack() {
@@ -212,5 +224,50 @@ public class Inputs : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    private void Animate() {
+        foreach (var projectile in Projectile.instances) {
+            if (projectile.range == 0 || (projectile.x == projectile.xDest && projectile.y == projectile.yDest) || Map.instance.monsters[projectile.x, projectile.y] != null) {
+                RemoveProjectile(projectile);
+                break;
+            }
+        }
+        foreach (var projectile in Projectile.instances) {
+            int x = projectile.xDest;
+            int y = projectile.yDest;
+            var x0 = projectile.x;
+            var y0 = projectile.y;
+            var dx = x - x0;
+            var dy = y - y0;
+            int sx, sy;
+            if (x0 < x) sx = 1;
+            else sx = -1;
+            if (y0 < y) sy = 1;
+            else sy = -1;
+            int xnext = x0;
+            int ynext = y0;
+            var denom = Mathf.Sqrt((float)dx * dx + (float)dy * dy);
+            if (Mathf.Abs(dy * (xnext - x0 + sx) - dx * (ynext - y0)) / denom < 0.5f) xnext += sx;
+            else if (Mathf.Abs(dy * (xnext - x0) - dx * (ynext - y0 + sy)) / denom < 0.5f) ynext += sy;
+            else {
+                xnext += sx;
+                ynext += sy;
+            }
+            projectile.x = xnext;
+            projectile.y = ynext;
+            projectile.range--;
+            Map.instance.projectiles[x0, y0] = null;
+            Map.instance.projectiles[xnext, ynext] = projectile;
+        }
+        Map.instance.Draw();
+    }
+
+    private void RemoveProjectile(Projectile projectile) {
+        Projectile.instances.Remove(projectile);
+        Map.instance.projectiles[projectile.x, projectile.y] = null;
+        mouseMode = MouseMode.Default;
+        Player.instance.ResolveTargetedCard(projectile);
+        Map.instance.Draw();
     }
 }

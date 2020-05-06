@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Map : MonoBehaviour {
     public DisplayCharacter[,] layout = new DisplayCharacter[80, 60];
-    public DisplayCharacter[,] monsters = new DisplayCharacter[80, 60];
+    public Monster[,] monsters = new Monster[80, 60];
+    public Projectile[,] projectiles = new Projectile[80, 60];
     public bool[,] seen = new bool[80, 60];
     private int startingX = 0;
     private int startingY = 0;
@@ -15,6 +16,7 @@ public class Map : MonoBehaviour {
 
     void Start() {
         instance = this;
+        new Player();
     }
 
     void Update() {
@@ -23,7 +25,6 @@ public class Map : MonoBehaviour {
             FillMap();
             DigStartingRoom();
             AddRooms();
-            new Player();
             UserInterface.instance.SetUpCardPositions();
             Draw();
         }
@@ -43,6 +44,7 @@ public class Map : MonoBehaviour {
     public void Draw() {
         DrawMap();
         DrawMonsters();
+        DrawProjectiles();
         UserInterface.Draw();
         CombatManager.instance.CheckIfInCombat();
     }
@@ -70,11 +72,23 @@ public class Map : MonoBehaviour {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
                 if (GetMonsters(x,y) == "") continue;
                 DisplayCharacter dc = null;
-                if (x >= 0 && y >= 0 && x < VirtualConsole.instance.width && y < VirtualConsole.instance.height) dc = monsters[x, y];
+                if (x >= 0 && y >= 0 && x < VirtualConsole.instance.width && y < VirtualConsole.instance.height) dc = monsters[x, y].display;
                 if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
             }
         }
-        VirtualConsole.Set(halfWidth, halfHeight, "@");
+    }
+
+    private void DrawProjectiles() {
+        var halfWidth = VirtualConsole.instance.width / 2;
+        var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
+        for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
+            for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
+                if (GetProjectiles(x, y) == "") continue;
+                DisplayCharacter dc = null;
+                if (x >= 0 && y >= 0 && x < VirtualConsole.instance.width && y < VirtualConsole.instance.height) dc = projectiles[x, y].display;
+                if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
+            }
+        }
     }
 
     private void FillMap() {
@@ -86,6 +100,7 @@ public class Map : MonoBehaviour {
                     bgColor = Color.black
                 };
                 monsters[x, y] = null;
+                projectiles[x, y] = null;
                 seen[x, y] = false;
             }
         }
@@ -194,10 +209,14 @@ public class Map : MonoBehaviour {
             int xRoll = Random.Range(x, x + width);
             int yRoll = Random.Range(y, y + width);
             if (Get(xRoll, yRoll) == ".") {
-                monsters[xRoll, yRoll] = new DisplayCharacter {
-                    character = "g",
-                    color = Color.green,
-                    bgColor = Color.black
+                monsters[xRoll, yRoll] = new Monster {
+                    x = xRoll,
+                    y = yRoll,
+                    display = new DisplayCharacter {
+                        character = "g",
+                        color = Color.green,
+                        bgColor = Color.black
+                    }
                 };
                 return;
             }
@@ -379,7 +398,13 @@ public class Map : MonoBehaviour {
     private string GetMonsters(int x, int y) {
         if (x < 0 || y < 0 || x >= monsters.GetLength(0) || y >= monsters.GetLength(1)) return "";
         else if (monsters[x, y] == null) return "";
-        else return monsters[x, y].character;
+        else return monsters[x, y].display.character;
+    }
+
+    private string GetProjectiles(int x, int y) {
+        if (x < 0 || y < 0 || x >= projectiles.GetLength(0) || y >= projectiles.GetLength(1)) return "";
+        else if (projectiles[x, y] == null) return "";
+        else return projectiles[x, y].display.character;
     }
 
     public bool Visible(int x, int y) {
@@ -419,7 +444,7 @@ public class Map : MonoBehaviour {
     public bool BlocksProjectile(int x, int y) {
         if (BlocksSight(x, y)) return true;
         var block = monsters[x, y];
-        if (block != null && block.character != "") return true;
+        if (block != null && block.display.character != "") return true;
         return false;
     }
 

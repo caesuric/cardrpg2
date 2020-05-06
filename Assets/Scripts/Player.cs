@@ -10,6 +10,7 @@ public class Player {
     public List<Card> hand = new List<Card>();
     public List<Card> discard = new List<Card>();
     public List<Card> inPlay = new List<Card>();
+    public Card justPlayed = null;
     public int energy = 5;
     public int actions = 4;
     public int hp = 10;
@@ -80,9 +81,40 @@ public class Player {
     }
 
     public void PlayCard(Card card) {
+        if (energy < card.template.cost) return;
+        if (actions < 1) return;
+        energy -= card.template.cost;
+        actions--;
+        justPlayed = card;
         if (card.template.ContainsEffect("damage") && card.template.ContainsEffect("range")) {
             Inputs.instance.mouseMode = MouseMode.Targeting;
             Inputs.instance.mouseRange = (int)card.template.FindEffect("range").value;
         }
+        if (card.template.ContainsEffect("gainEnergy")) energy += (int)card.template.FindEffect("gainEnergy").value;
+        if (Inputs.instance.mouseMode != MouseMode.Targeting && actions <= 0) CombatManager.instance.TriggerMonsterTurn();
+    }
+
+    public void FireProjectile(int x, int y) {
+        Map.instance.projectiles[Map.instance.posX, Map.instance.posY] = new Projectile {
+            display = new DisplayCharacter {
+                character = "\u256c",
+                color = Color.yellow,
+                bgColor = Color.red
+            },
+            xDest = x,
+            yDest = y,
+            x = Map.instance.posX,
+            y = Map.instance.posY,
+            range = Inputs.instance.mouseRange
+        };
+    }
+
+    public void ResolveTargetedCard(Projectile projectile) {
+        var x = projectile.x;
+        var y = projectile.y;
+        if (Map.instance.monsters[x, y] != null) Map.instance.monsters[x, y].hp -= (int)justPlayed.template.FindEffect("damage").value;
+        if (Map.instance.monsters[x, y] != null && Map.instance.monsters[x, y].hp <= 0) Map.instance.monsters[x, y] = null;
+        CombatManager.instance.CheckIfInCombat();
+        if (CombatManager.instance.inCombat && actions <= 0) CombatManager.instance.TriggerMonsterTurn();
     }
 }

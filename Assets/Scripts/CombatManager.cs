@@ -12,8 +12,20 @@ public class CombatManager : MonoBehaviour {
 
     public void CheckIfInCombat() {
         if (InCombat()) {
-            if (!inCombat) playerTurn = true;
+            if (!inCombat) {
+                playerTurn = true;
+                Player.instance.actions = 4;
+                Player.instance.energy = 5;
+            }
             inCombat = true;
+        }
+        else {
+            if (inCombat) {
+                Inputs.instance.mouseMode = MouseMode.Default;
+                while (Player.instance.hand.Count < 5) Player.instance.DrawCard();
+                UserInterface.instance.SetUpCardPositions();
+            }
+            inCombat = false;
         }
     }
 
@@ -25,5 +37,13 @@ public class CombatManager : MonoBehaviour {
             }
         }
         return false;
+    }
+
+    public void TriggerMonsterTurn() {
+        foreach (var monster in Monster.instances) {
+            monster.Act();
+        }
+        Player.instance.actions = 4;
+        Map.instance.Draw();
     }
 }
