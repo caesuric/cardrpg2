@@ -34,11 +34,11 @@ public class Player {
         var firebolt = new CardTemplate() {
             cost = 2,
             name = "Firebolt",
-            text = "Deal 5 damage to an enemy at range 5.",
+            text = "Deal 5 damage to an enemy at range 10.",
             effects = new List<CardEffect>() {
                 new CardEffect() {
                     type="range",
-                    value=5,
+                    value=10,
                 },
                 new CardEffect() {
                     type="damage",

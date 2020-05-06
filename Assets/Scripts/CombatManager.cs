@@ -23,6 +23,8 @@ public class CombatManager : MonoBehaviour {
             if (inCombat) {
                 Inputs.instance.mouseMode = MouseMode.Default;
                 while (Player.instance.hand.Count < 5) Player.instance.DrawCard();
+                Player.instance.actions = 4;
+                Player.instance.energy = 5;
                 UserInterface.instance.SetUpCardPositions();
             }
             inCombat = false;

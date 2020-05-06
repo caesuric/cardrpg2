@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Inputs : MonoBehaviour
 {
+    private static readonly float moveTimeout = 0.2f;
     private bool moved = false;
     private float moveTimer = 0f;
     public static Inputs instance = null;
@@ -52,7 +53,25 @@ public class Inputs : MonoBehaviour
             oldMouseY = mouseY;
         }
 
-        //keyboard
+        //draw card
+        if (CombatManager.instance.inCombat && Player.instance.actions > 0 && Input.GetKeyDown(KeyCode.Space) && Player.instance.hand.Count < 5) {
+            Player.instance.actions--;
+            Player.instance.DrawCard();
+            UserInterface.instance.SetUpCardPositions();
+            Map.instance.Draw();
+            if (Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
+        }
+        else if (CombatManager.instance.inCombat && mouseMode == MouseMode.Targeting && Input.GetKeyDown(KeyCode.Escape)) {
+            mouseMode = MouseMode.Default;
+            Player.instance.actions++;
+            Player.instance.energy += Player.instance.justPlayed.template.cost;
+            Player.instance.hand.Add(Player.instance.justPlayed);
+            UserInterface.instance.SetUpCardPositions();
+            Player.instance.justPlayed = null;
+            Map.instance.Draw();
+        }
+
+        //keyboard movement
         if (moved) {
             moveTimer -= Time.deltaTime;
             if (moveTimer <= 0) {
@@ -69,7 +88,7 @@ public class Inputs : MonoBehaviour
         else if (horiz < 0) MoveLeft();
         else if (vert < 0) MoveUp();
         else if (vert > 0) MoveDown();
-        if (Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
+        if (moved && Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
     }
 
     private void SlideCardBack() {
@@ -189,7 +208,7 @@ public class Inputs : MonoBehaviour
         if (!MoveValid(Map.instance.posX + 1, Map.instance.posY)) return;
         Map.instance.posX++;
         Map.instance.Draw();
-        moveTimer = 0.25f;
+        moveTimer = moveTimeout;
         moved = true;
     }
 
@@ -197,7 +216,7 @@ public class Inputs : MonoBehaviour
         if (!MoveValid(Map.instance.posX - 1, Map.instance.posY)) return;
         Map.instance.posX--;
         Map.instance.Draw();
-        moveTimer = 0.25f;
+        moveTimer = moveTimeout;
         moved = true;
     }
 
@@ -205,7 +224,7 @@ public class Inputs : MonoBehaviour
         if (!MoveValid(Map.instance.posX, Map.instance.posY - 1)) return;
         Map.instance.posY--;
         Map.instance.Draw();
-        moveTimer = 0.25f;
+        moveTimer = moveTimeout;
         moved = true;
     }
 
@@ -213,7 +232,7 @@ public class Inputs : MonoBehaviour
         if (!MoveValid(Map.instance.posX, Map.instance.posY + 1)) return;
         Map.instance.posY++;
         Map.instance.Draw();
-        moveTimer = 0.25f;
+        moveTimer = moveTimeout;
         moved = true;
     }
 
