@@ -20,6 +20,7 @@ public class UserInterface : MonoBehaviour {
     public static void Draw() {
         instance.DrawCards();
         instance.DrawFPS();
+        instance.DrawHUD();
     }
 
     private int AverageCount() {
@@ -120,5 +121,16 @@ public class UserInterface : MonoBehaviour {
         var fps = AverageCount().ToString();
         fps += " FPS";
         VirtualConsole.Write(fps, VirtualConsole.instance.width - 7, VirtualConsole.instance.height - 2, 7, 1, 0, 1, 0, 0.5f, 0.5f, 0.5f);
+    }
+
+    private void DrawHUD() {
+        var level = "Level " + Player.instance.level.ToString();
+        var hp = "HP: " + Player.instance.hp.ToString() + "/" + Player.instance.maxHp.ToString();
+        var actions = "Actions: " + Player.instance.actions.ToString();
+        var energy = "Energy: " + Player.instance.energy.ToString();
+        VirtualConsole.Write(level, 0, VirtualConsole.instance.height - 2, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(hp, 0, VirtualConsole.instance.height - 3, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(actions, 0, VirtualConsole.instance.height - 4, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(energy, 0, VirtualConsole.instance.height - 5, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
     }
 }

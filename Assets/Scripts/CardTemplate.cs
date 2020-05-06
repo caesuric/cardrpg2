@@ -14,4 +14,14 @@ public class CardTemplate {
     public CardTemplate() {
         instances.Add(this);
     }
+
+    public bool ContainsEffect(string type) {
+        foreach (var effect in effects) if (effect.type == type) return true;
+        return false;
+    }
+
+    public CardEffect FindEffect(string type) {
+        foreach (var effect in effects) if (effect.type == type) return effect;
+        return null;
+    }
 }

@@ -57,6 +57,11 @@ public class VirtualConsole : MonoBehaviour {
         instance.backgroundBlocks[x, y].color = new Color(bgR, bgG, bgB);
     }
 
+    public static void ColorBlock(int x, int y, float r, float g, float b) {
+        if (x < 0 || y < 0 || x >= instance.width || y >= instance.height) return;
+        instance.backgroundBlocks[x, y].color = new Color(r, g, b);
+    }
+
     public static void Write(string text, int x, int y, int width, int height, float textR = 1, float textG = 1, float textB = 1, float bgR = 0, float bgG = 0, float bgB = 0) {
         int cursorX = x;
         int cursorY = y + height;

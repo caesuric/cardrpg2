@@ -14,6 +14,8 @@ public class Player {
     public int actions = 4;
     public int hp = 10;
     public int maxHp = 10;
+    public int level = 1;
+    public int experience = 0;
 
     public Player() {
         instance = this;
@@ -75,5 +77,12 @@ public class Player {
 
     public void DrawCards(int n) {
         for (int i = 0; i < n; i++) DrawCard();
+    }
+
+    public void PlayCard(Card card) {
+        if (card.template.ContainsEffect("damage") && card.template.ContainsEffect("range")) {
+            Inputs.instance.mouseMode = MouseMode.Targeting;
+            Inputs.instance.mouseRange = (int)card.template.FindEffect("range").value;
+        }
     }
 }

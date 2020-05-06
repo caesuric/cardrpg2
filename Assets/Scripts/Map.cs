@@ -416,8 +416,19 @@ public class Map : MonoBehaviour {
         return false;
     }
 
+    public bool BlocksProjectile(int x, int y) {
+        if (BlocksSight(x, y)) return true;
+        var block = monsters[x, y];
+        if (block != null && block.character != "") return true;
+        return false;
+    }
+
     public bool Seen(int x, int y) {
         if (x < 0 || y < 0 || x >= layout.GetLength(0) || y >= layout.GetLength(1)) return false;
         return seen[x, y];
+    }
+
+    public void ColorBlock(int x, int y, float r, float g, float b) {
+        VirtualConsole.ColorBlock(x - instance.posX + VirtualConsole.instance.width / 2, y - instance.posY + ((VirtualConsole.instance.height - 15) / 2) + 15, r, g, b);
     }
 }

@@ -15,6 +15,8 @@ public class Inputs : MonoBehaviour
     public int cardDragged = -1;
     public int cardDragCoordsX = -1;
     public int cardDragCoordsY = -1;
+    public MouseMode mouseMode = MouseMode.Default;
+    public int mouseRange = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -30,9 +32,12 @@ public class Inputs : MonoBehaviour
             var prevMouseDown = mouseDown;
             if (Input.GetMouseButtonDown(0)) mouseDown = true;
             if (Input.GetMouseButtonUp(0)) mouseDown = false;
-            if (mouseDown && !prevMouseDown && OverCard()) DragCard();
-            if (cardDragged > -1 && (oldMouseX != mouseX || oldMouseY != mouseY)) MoveCard();
-            if (prevMouseDown && !mouseDown) StopDragCard();
+            if (mouseMode == MouseMode.Default) {
+                if (mouseDown && !prevMouseDown && OverCard()) DragCard();
+                if (cardDragged > -1 && (oldMouseX != mouseX || oldMouseY != mouseY)) MoveCard();
+                if (prevMouseDown && !mouseDown) StopDragCard();
+            }
+            else if (mouseMode == MouseMode.Targeting) DrawTargetingLine();
             oldMouseX = mouseX;
             oldMouseY = mouseY;
         }
@@ -119,6 +124,7 @@ public class Inputs : MonoBehaviour
             card.position = card.originalPosition;
             Player.instance.discard.Add(card);
             Player.instance.hand.Remove(card);
+            Player.instance.PlayCard(card);
             UserInterface.instance.SetUpCardPositions();
         }
         cardDragged = -2;
@@ -131,6 +137,41 @@ public class Inputs : MonoBehaviour
         return false;
     }
 
+    private void DrawTargetingLine() {
+        Map.instance.Draw();
+        int x = mouseX + Map.instance.posX - VirtualConsole.instance.width / 2;
+        int y = mouseY + Map.instance.posY - (((VirtualConsole.instance.height - 15) / 2) + 15);
+        int range = mouseRange + 1;
+        var x0 = Map.instance.posX;
+        var y0 = Map.instance.posY;
+        var dx = x - x0;
+        var dy = y - y0;
+        int sx, sy;
+        if (x0 < x) sx = 1;
+        else sx = -1;
+        if (y0 < y) sy = 1;
+        else sy = -1;
+        int xnext = x0;
+        int ynext = y0;
+        var denom = Mathf.Sqrt((float)dx * dx + (float)dy * dy);
+        while ((xnext != x || ynext != y) && range > 0) {
+            range--;
+            if (xnext >= 0 && ynext >= 0 && xnext < Map.instance.layout.GetLength(0) && ynext < Map.instance.layout.GetLength(1)) {
+                if (!Map.instance.BlocksSight(xnext, ynext)) {
+                    if (xnext != x0 || ynext != y0) Map.instance.ColorBlock(xnext, ynext, 0, 1, 0);
+                    if (Map.instance.BlocksProjectile(xnext, ynext)) return;
+                }
+                else return;
+                if (Mathf.Abs(dy * (xnext - x0 + sx) - dx * (ynext - y0)) / denom < 0.5f) xnext += sx;
+                else if (Mathf.Abs(dy * (xnext - x0) - dx * (ynext - y0 + sy)) / denom < 0.5f) ynext += sy;
+                else {
+                    xnext += sx;
+                    ynext += sy;
+                }
+            }
+        }
+        if (range > 0 && (xnext != x0 || ynext != y0) && !Map.instance.BlocksSight(xnext, ynext)) Map.instance.ColorBlock(xnext, ynext, 0, 1, 0);
+    }
 
     private void MoveRight() {
         if (!MoveValid(Map.instance.posX + 1, Map.instance.posY)) return;
