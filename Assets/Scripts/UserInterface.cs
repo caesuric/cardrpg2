@@ -6,6 +6,7 @@ public class UserInterface : MonoBehaviour {
     public static UserInterface instance;
     public int framesToCount = 300;
     private List<float> counts = new List<float>();
+    private List<string> logMessages = new List<string>();
     // Start is called before the first frame update
     void Start() {
         instance = this;
@@ -19,8 +20,13 @@ public class UserInterface : MonoBehaviour {
 
     public static void Draw() {
         instance.DrawCards();
+        instance.DrawLog();
         instance.DrawFPS();
         instance.DrawHUD();
+    }
+
+    public static void Log(string message) {
+        instance.logMessages.Add(message);
     }
 
     private int AverageCount() {
@@ -28,6 +34,64 @@ public class UserInterface : MonoBehaviour {
         foreach (var item in counts) total += item;
         total /= counts.Count;
         return (int)Mathf.Floor(total);
+    }
+
+    private void DrawLog() {
+        for (int x = 47; x < VirtualConsole.instance.width; x++) {
+            for (int y = 16; y < 23; y++) {
+                VirtualConsole.Set(x, y, " ");
+            }
+        }
+        for (int x=47; x<VirtualConsole.instance.width; x++) {
+            VirtualConsole.Set(x, 16, "\u2550");
+            VirtualConsole.Set(x, 23, "\u2550");
+        }
+
+        for (int y=16; y<23; y++) {
+            VirtualConsole.Set(47, y, "\u2551");
+            VirtualConsole.Set(VirtualConsole.instance.width - 1, y, "\u2551");
+        }
+        VirtualConsole.Set(47, 16, "\u255a");
+        VirtualConsole.Set(47, 23, "\u2554");
+        VirtualConsole.Set(VirtualConsole.instance.width - 1, 16, "\u255d");
+        VirtualConsole.Set(VirtualConsole.instance.width - 1, 23, "\u2557");
+        DrawLogMessages();
+    }
+
+    private void DrawLogMessages() {
+        while (logMessages.Count > 6) logMessages.RemoveAt(0);
+        var concat = "";
+        foreach (var logMessage in logMessages) concat += logMessage + "\n";
+        if (concat!="") concat = concat.Substring(0, concat.Length - 1);
+        concat = PruneLinesToFit(concat);
+        //for (int i=0; i<logMessages.Count; i++) {
+        //    VirtualConsole.Write(logMessages[i], 48, 21 - i, VirtualConsole.instance.width - 50, 1);
+        //}
+        VirtualConsole.Write(concat, 48, 16, VirtualConsole.instance.width - 50, 6);
+    }
+
+    private string PruneLinesToFit(string original) {
+        var output = original;
+        int lines = 1;
+        int cursor = 0;
+        foreach (var letter in original) {
+            if (letter=='\n') {
+                cursor = 0;
+                lines++;
+            }
+            else {
+                cursor++;
+                if (cursor>VirtualConsole.instance.width-50) {
+                    cursor = 0;
+                    lines++;
+                }
+            }
+        }
+        if (lines > 6) {
+            output = output.Substring(output.IndexOf('\n') + 1);
+            return PruneLinesToFit(output);
+        }
+        else return output;
     }
 
     private void DrawCards() {

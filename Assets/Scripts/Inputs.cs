@@ -57,6 +57,7 @@ public class Inputs : MonoBehaviour
         if (CombatManager.instance.inCombat && Player.instance.actions > 0 && Input.GetKeyDown(KeyCode.Space) && Player.instance.hand.Count < 5) {
             Player.instance.actions--;
             Player.instance.DrawCard();
+            UserInterface.Log("You draw a card.");
             UserInterface.instance.SetUpCardPositions();
             Map.instance.Draw();
             if (Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
@@ -84,14 +85,14 @@ public class Inputs : MonoBehaviour
         if (horiz == 0 && vert == 0) moved = false;
         if (moved) return;
         if (CombatManager.instance.inCombat && (horiz != 0 || vert != 0 || Input.GetKeyDown(KeyCode.Keypad7) || Input.GetKeyDown(KeyCode.Keypad9) || Input.GetKeyDown(KeyCode.Keypad1) || Input.GetKeyDown(KeyCode.Keypad3))) Player.instance.actions--;
-        if (horiz > 0) MoveRight();
-        else if (horiz < 0) MoveLeft();
-        else if (vert < 0) MoveUp();
-        else if (vert > 0) MoveDown();
-        else if (Input.GetKeyDown(KeyCode.Keypad7)) MoveUpLeft();
-        else if (Input.GetKeyDown(KeyCode.Keypad9)) MoveUpRight();
-        else if (Input.GetKeyDown(KeyCode.Keypad1)) MoveDownLeft();
-        else if (Input.GetKeyDown(KeyCode.Keypad3)) MoveDownRight();
+        if (horiz > 0) Move(1, 0);
+        else if (horiz < 0) Move(-1, 0);
+        else if (vert < 0) Move(0, -1);
+        else if (vert > 0) Move(0, 1);
+        else if (Input.GetKeyDown(KeyCode.Keypad7)) Move(-1, 1);
+        else if (Input.GetKeyDown(KeyCode.Keypad9)) Move(1, 1);
+        else if (Input.GetKeyDown(KeyCode.Keypad1)) Move(-1, -1);
+        else if (Input.GetKeyDown(KeyCode.Keypad3)) Move(1, -1);
         if (moved && Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
     }
 
@@ -208,69 +209,15 @@ public class Inputs : MonoBehaviour
         if (range > 0 && (xnext != x0 || ynext != y0) && !Map.instance.BlocksSight(xnext, ynext)) Map.instance.ColorBlock(xnext, ynext, 0, 1, 0);
     }
 
-    private void MoveRight() {
-        if (!MoveValid(Map.instance.posX + 1, Map.instance.posY)) return;
-        Map.instance.posX++;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveLeft() {
-        if (!MoveValid(Map.instance.posX - 1, Map.instance.posY)) return;
-        Map.instance.posX--;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveUp() {
-        if (!MoveValid(Map.instance.posX, Map.instance.posY - 1)) return;
-        Map.instance.posY--;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveDown() {
-        if (!MoveValid(Map.instance.posX, Map.instance.posY + 1)) return;
-        Map.instance.posY++;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveUpLeft() {
-        if (!MoveValid(Map.instance.posX - 1, Map.instance.posY + 1)) return;
-        Map.instance.posX--;
-        Map.instance.posY++;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveUpRight() {
-        if (!MoveValid(Map.instance.posX + 1, Map.instance.posY + 1)) return;
-        Map.instance.posX++;
-        Map.instance.posY++;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveDownLeft() {
-        if (!MoveValid(Map.instance.posX - 1, Map.instance.posY - 1)) return;
-        Map.instance.posX--;
-        Map.instance.posY--;
-        Map.instance.Draw();
-        moveTimer = moveTimeout;
-        moved = true;
-    }
-
-    private void MoveDownRight() {
-        if (!MoveValid(Map.instance.posX + 1, Map.instance.posY - 1)) return;
-        Map.instance.posX++;
-        Map.instance.posY--;
+    private void Move(int x, int y) {
+        if (Map.instance.monsters[Map.instance.posX + x, Map.instance.posY + y] != null) {
+            Player.instance.DefaultMeleeAttack(Map.instance.monsters[Map.instance.posX + x, Map.instance.posY + y]);
+        }
+        else {
+            if (!MoveValid(Map.instance.posX + x, Map.instance.posY + y)) return;
+            Map.instance.posX += x;
+            Map.instance.posY += y;
+        }
         Map.instance.Draw();
         moveTimer = moveTimeout;
         moved = true;

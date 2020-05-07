@@ -201,17 +201,22 @@ public class Map : MonoBehaviour {
         if (SpaceForRoom(x, y, facing, width, height, minorAxisOffset)) {
             DigRoom(type, x, y, facing, width, height, door, minorAxisOffset);
             int monsterRoll = Random.Range(0, 2);
-            if (monsterRoll == 0) AddMonster(x, y, width, height);
+            if (monsterRoll == 0) AddMonsters(x, y, width, height);
             return true;
         }
         else return false;
     }
 
+    private void AddMonsters(int x, int y, int width, int height) {
+        int roll = Random.Range(1, 4);
+        for (int i = 0; i < roll; i++) AddMonster(x, y, width, height);
+    }
+
     private void AddMonster(int x, int y, int width, int height) {
-        while (true) {
+        for (int i = 0; i < 1000; i++) {
             int xRoll = Random.Range(x, x + width);
             int yRoll = Random.Range(y, y + width);
-            if (Get(xRoll, yRoll) == ".") {
+            if (Get(xRoll, yRoll) == "." && !(xRoll == posX || yRoll == posY) && monsters[xRoll, yRoll] == null && !Visible(xRoll, yRoll)) {
                 monsters[xRoll, yRoll] = new Monster {
                     x = xRoll,
                     y = yRoll,
@@ -411,6 +416,7 @@ public class Map : MonoBehaviour {
     }
 
     public bool Visible(int x, int y) {
+        if (x < 0 || y < 0 || x >= layout.GetLength(0) || y >= layout.GetLength(1)) return false;
         var x0 = posX;
         var y0 = posY;
         var dx = x - posX;
@@ -432,6 +438,9 @@ public class Map : MonoBehaviour {
                     xnext += sx;
                     ynext += sy;
                 }
+            }
+            else {
+                return false;
             }
         }
         seen[x, y] = true;

@@ -73,8 +73,14 @@ public class VirtualConsole : MonoBehaviour {
                 if (cursorY > y + height) return;
             }
             foreach (var letter in word) {
-                Set(cursorX, cursorY, letter.ToString(), textR, textG, textB, bgR, bgG, bgB);
-                cursorX++;
+                if (letter == '\n') {
+                    cursorX = x;
+                    cursorY--;
+                }
+                else {
+                    Set(cursorX, cursorY, letter.ToString(), textR, textG, textB, bgR, bgG, bgB);
+                    cursorX++;
+                }
             }
             if (cursorX <= x + width) {
                 Set(cursorX, cursorY, " ", textR, textG, textB, bgR, bgG, bgB);
