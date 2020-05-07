@@ -192,9 +192,13 @@ public class UserInterface : MonoBehaviour {
         var hp = "HP: " + Player.instance.hp.ToString() + "/" + Player.instance.maxHp.ToString();
         var actions = "Actions: " + Player.instance.actions.ToString();
         var energy = "Energy: " + Player.instance.energy.ToString();
+        var deck = "Cards in Deck: " + Player.instance.deck.Count.ToString();
+        var discard = "Cards in Discard: " + Player.instance.discard.Count.ToString();
         VirtualConsole.Write(level, 0, VirtualConsole.instance.height - 2, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
         VirtualConsole.Write(hp, 0, VirtualConsole.instance.height - 3, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
         VirtualConsole.Write(actions, 0, VirtualConsole.instance.height - 4, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
         VirtualConsole.Write(energy, 0, VirtualConsole.instance.height - 5, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(deck, 0, VirtualConsole.instance.height - 6, 18, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(discard, 0, VirtualConsole.instance.height - 7, 21, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
     }
 }

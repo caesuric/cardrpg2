@@ -67,6 +67,7 @@ public class Inputs : MonoBehaviour
             Player.instance.actions++;
             Player.instance.energy += Player.instance.justPlayed.template.cost;
             Player.instance.hand.Add(Player.instance.justPlayed);
+            Player.instance.discard.Remove(Player.instance.justPlayed);
             UserInterface.instance.SetUpCardPositions();
             Player.instance.justPlayed = null;
             Map.instance.Draw();
