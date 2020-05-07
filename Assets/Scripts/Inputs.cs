@@ -83,11 +83,15 @@ public class Inputs : MonoBehaviour
         var vert = Input.GetAxis("Vertical");
         if (horiz == 0 && vert == 0) moved = false;
         if (moved) return;
-        if (CombatManager.instance.inCombat && (horiz != 0 || vert != 0)) Player.instance.actions--;
+        if (CombatManager.instance.inCombat && (horiz != 0 || vert != 0 || Input.GetKeyDown(KeyCode.Keypad7) || Input.GetKeyDown(KeyCode.Keypad9) || Input.GetKeyDown(KeyCode.Keypad1) || Input.GetKeyDown(KeyCode.Keypad3))) Player.instance.actions--;
         if (horiz > 0) MoveRight();
         else if (horiz < 0) MoveLeft();
         else if (vert < 0) MoveUp();
         else if (vert > 0) MoveDown();
+        else if (Input.GetKeyDown(KeyCode.Keypad7)) MoveUpLeft();
+        else if (Input.GetKeyDown(KeyCode.Keypad9)) MoveUpRight();
+        else if (Input.GetKeyDown(KeyCode.Keypad1)) MoveDownLeft();
+        else if (Input.GetKeyDown(KeyCode.Keypad3)) MoveDownRight();
         if (moved && Player.instance.actions <= 0) CombatManager.instance.TriggerMonsterTurn();
     }
 
@@ -164,7 +168,7 @@ public class Inputs : MonoBehaviour
 
     private bool CardPlayed() {
         var card = Player.instance.hand[cardDragged];
-        if (card.position.y > 14) return true;
+        if (card.position.y > 14 && Player.instance.energy >= card.template.cost && Player.instance.actions > 0) return true;
         return false;
     }
 
@@ -231,6 +235,42 @@ public class Inputs : MonoBehaviour
     private void MoveDown() {
         if (!MoveValid(Map.instance.posX, Map.instance.posY + 1)) return;
         Map.instance.posY++;
+        Map.instance.Draw();
+        moveTimer = moveTimeout;
+        moved = true;
+    }
+
+    private void MoveUpLeft() {
+        if (!MoveValid(Map.instance.posX - 1, Map.instance.posY + 1)) return;
+        Map.instance.posX--;
+        Map.instance.posY++;
+        Map.instance.Draw();
+        moveTimer = moveTimeout;
+        moved = true;
+    }
+
+    private void MoveUpRight() {
+        if (!MoveValid(Map.instance.posX + 1, Map.instance.posY + 1)) return;
+        Map.instance.posX++;
+        Map.instance.posY++;
+        Map.instance.Draw();
+        moveTimer = moveTimeout;
+        moved = true;
+    }
+
+    private void MoveDownLeft() {
+        if (!MoveValid(Map.instance.posX - 1, Map.instance.posY - 1)) return;
+        Map.instance.posX--;
+        Map.instance.posY--;
+        Map.instance.Draw();
+        moveTimer = moveTimeout;
+        moved = true;
+    }
+
+    private void MoveDownRight() {
+        if (!MoveValid(Map.instance.posX + 1, Map.instance.posY - 1)) return;
+        Map.instance.posX++;
+        Map.instance.posY--;
         Map.instance.Draw();
         moveTimer = moveTimeout;
         moved = true;

@@ -113,7 +113,10 @@ public class Player {
         var x = projectile.x;
         var y = projectile.y;
         if (Map.instance.monsters[x, y] != null) Map.instance.monsters[x, y].hp -= (int)justPlayed.template.FindEffect("damage").value;
-        if (Map.instance.monsters[x, y] != null && Map.instance.monsters[x, y].hp <= 0) Map.instance.monsters[x, y] = null;
+        if (Map.instance.monsters[x, y] != null && Map.instance.monsters[x, y].hp <= 0) {
+            Monster.instances.Remove(Map.instance.monsters[x, y]);
+            Map.instance.monsters[x, y] = null;
+        }
         CombatManager.instance.CheckIfInCombat();
         if (CombatManager.instance.inCombat && actions <= 0) CombatManager.instance.TriggerMonsterTurn();
     }

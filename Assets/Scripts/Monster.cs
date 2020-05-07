@@ -40,6 +40,6 @@ public class Monster {
     private void Attack() {
         var dx = Mathf.Abs(x - Map.instance.posX);
         var dy = Mathf.Abs(y - Map.instance.posY);
-        if (dx + dy <= 1) Player.instance.hp -= 2;
+        if (dx <= 1 && dy <= 1) Player.instance.hp -= 2;
     }
 }
