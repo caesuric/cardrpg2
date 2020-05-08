@@ -73,6 +73,10 @@ public class Inputs : MonoBehaviour
             Map.instance.Draw();
         }
 
+        // stairs
+        if (Input.GetKeyDown(KeyCode.Period) && Map.instance.currentFloor.layout[Map.instance.posX, Map.instance.posY].character == ">") GoDownStairs();
+        else if (Input.GetKeyDown(KeyCode.Comma) && Map.instance.currentFloor.layout[Map.instance.posX, Map.instance.posY].character == "<") GoUpStairs();
+
         //keyboard movement
         if (moved) {
             moveTimer -= Time.deltaTime;
@@ -193,7 +197,7 @@ public class Inputs : MonoBehaviour
         var denom = Mathf.Sqrt((float)dx * dx + (float)dy * dy);
         while ((xnext != x || ynext != y) && range > 0) {
             range--;
-            if (xnext >= 0 && ynext >= 0 && xnext < Map.instance.layout.GetLength(0) && ynext < Map.instance.layout.GetLength(1)) {
+            if (xnext >= 0 && ynext >= 0 && xnext < Map.instance.currentFloor.layout.GetLength(0) && ynext < Map.instance.currentFloor.layout.GetLength(1)) {
                 if (!Map.instance.BlocksSight(xnext, ynext)) {
                     if (xnext != x0 || ynext != y0) Map.instance.ColorBlock(xnext, ynext, 0, 1, 0);
                     if (Map.instance.BlocksProjectile(xnext, ynext)) return;
@@ -211,8 +215,8 @@ public class Inputs : MonoBehaviour
     }
 
     private void Move(int x, int y) {
-        if (Map.instance.monsters[Map.instance.posX + x, Map.instance.posY + y] != null) {
-            Player.instance.DefaultMeleeAttack(Map.instance.monsters[Map.instance.posX + x, Map.instance.posY + y]);
+        if (Map.instance.currentFloor.monsters[Map.instance.posX + x, Map.instance.posY + y] != null) {
+            Player.instance.DefaultMeleeAttack(Map.instance.currentFloor.monsters[Map.instance.posX + x, Map.instance.posY + y]);
         }
         else {
             if (!MoveValid(Map.instance.posX + x, Map.instance.posY + y)) return;
@@ -225,17 +229,18 @@ public class Inputs : MonoBehaviour
     }
 
     private bool MoveValid(int x, int y) {
-        if (Map.instance.monsters[x, y] != null) return false;
-        if (Map.instance.layout[x, y].character == "." || Map.instance.layout[x, y].character == "+") {
-            Map.instance.layout[x, y].character = ".";
+        if (Map.instance.currentFloor.monsters[x, y] != null) return false;
+        if (Map.instance.currentFloor.layout[x, y].character == "." || Map.instance.currentFloor.layout[x, y].character == "+") {
+            Map.instance.currentFloor.layout[x, y].character = ".";
             return true;
         }
+        else if (Map.instance.currentFloor.layout[x, y].character == ">" || Map.instance.currentFloor.layout[x, y].character == "<") return true;
         return false;
     }
 
     private void Animate() {
         foreach (var projectile in Projectile.instances) {
-            if (projectile.range == 0 || (projectile.x == projectile.xDest && projectile.y == projectile.yDest) || Map.instance.monsters[projectile.x, projectile.y] != null) {
+            if (projectile.range == 0 || (projectile.x == projectile.xDest && projectile.y == projectile.yDest) || Map.instance.currentFloor.monsters[projectile.x, projectile.y] != null) {
                 RemoveProjectile(projectile);
                 break;
             }
@@ -264,17 +269,33 @@ public class Inputs : MonoBehaviour
             projectile.x = xnext;
             projectile.y = ynext;
             projectile.range--;
-            Map.instance.projectiles[x0, y0] = null;
-            Map.instance.projectiles[xnext, ynext] = projectile;
+            Map.instance.currentFloor.projectiles[x0, y0] = null;
+            Map.instance.currentFloor.projectiles[xnext, ynext] = projectile;
         }
         Map.instance.Draw();
     }
 
     private void RemoveProjectile(Projectile projectile) {
         Projectile.instances.Remove(projectile);
-        Map.instance.projectiles[projectile.x, projectile.y] = null;
+        Map.instance.currentFloor.projectiles[projectile.x, projectile.y] = null;
         mouseMode = MouseMode.Default;
         Player.instance.ResolveTargetedCard(projectile);
+        Map.instance.Draw();
+    }
+
+    private void GoDownStairs() {
+        Map.instance.currentFloorNumber++;
+        Map.instance.currentFloor = Map.instance.floors[Map.instance.currentFloorNumber];
+        Map.instance.posX = Map.instance.currentFloor.startingX;
+        Map.instance.posY = Map.instance.currentFloor.startingY;
+        Map.instance.Draw();
+    }
+
+    private void GoUpStairs() {
+        Map.instance.currentFloorNumber--;
+        Map.instance.currentFloor = Map.instance.floors[Map.instance.currentFloorNumber];
+        Map.instance.posX = Map.instance.currentFloor.endingX;
+        Map.instance.posY = Map.instance.currentFloor.endingY;
         Map.instance.Draw();
     }
 }

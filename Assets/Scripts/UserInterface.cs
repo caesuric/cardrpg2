@@ -194,11 +194,15 @@ public class UserInterface : MonoBehaviour {
         var energy = "Energy: " + Player.instance.energy.ToString();
         var deck = "Cards in Deck: " + Player.instance.deck.Count.ToString();
         var discard = "Cards in Discard: " + Player.instance.discard.Count.ToString();
+        var floor = "Floor: " + (Map.instance.currentFloorNumber + 1).ToString();
+        var experience = "Experience: " + Player.instance.experience.ToString() + "/" + Player.instance.experienceToLevel.ToString();
         VirtualConsole.Write(level, 0, VirtualConsole.instance.height - 2, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(hp, 0, VirtualConsole.instance.height - 3, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(actions, 0, VirtualConsole.instance.height - 4, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(energy, 0, VirtualConsole.instance.height - 5, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(deck, 0, VirtualConsole.instance.height - 6, 18, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(discard, 0, VirtualConsole.instance.height - 7, 21, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(energy, 0, VirtualConsole.instance.height - 3, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(deck, 0, VirtualConsole.instance.height - 4, 18, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(discard, 0, VirtualConsole.instance.height - 5, 21, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(floor, 0, VirtualConsole.instance.height - 6, 9, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.DrawBar(hp, Player.instance.hp, Player.instance.maxHp, 0, VirtualConsole.instance.height - 7, 23, 1, 1, 1, 1, 0, 0, 0.5f, 0, 0);
+        VirtualConsole.DrawBar(actions, Player.instance.actions, 4, 0, VirtualConsole.instance.height - 8, 23, 0, 0, 0, 0, 1, 0, 0, 0.5f, 0);
+        VirtualConsole.DrawBar(experience, Player.instance.experience, Player.instance.experienceToLevel, 0, VirtualConsole.instance.height - 9, 23, 1, 1, 1, 0, 0, 1, 0, 0, 0.5f);
     }
 }

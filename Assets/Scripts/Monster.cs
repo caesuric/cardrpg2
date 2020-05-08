@@ -12,6 +12,7 @@ public class Monster {
     public static List<Monster> instances = new List<Monster>();
     public int x = 0;
     public int y = 0;
+    public int floor = 0;
     public int initiative = 0;
 
     public Monster() {
@@ -19,6 +20,7 @@ public class Monster {
     }
 
     public void Act() {
+        if (floor != Map.instance.currentFloorNumber) return;
         Move();
         Attack();
     }
@@ -30,17 +32,17 @@ public class Monster {
     }
 
     private void MoveTowardsPlayer() {
-        Map.instance.monsters[x, y] = null;
+        Map.instance.currentFloor.monsters[x, y] = null;
         if (x < Map.instance.posX - 1 && MoveOkay(x + 1, y)) x++;
         if (x > Map.instance.posX + 1 && MoveOkay(x - 1, y)) x--;
         if (y < Map.instance.posY - 1 && MoveOkay(x, y + 1)) y++;
         if (y > Map.instance.posY + 1 && MoveOkay(x, y - 1)) y--;
-        Map.instance.monsters[x, y] = this;
+        Map.instance.currentFloor.monsters[x, y] = this;
     }
 
     private bool MoveOkay(int x, int y) {
-        if (Map.instance.layout[x, y].character != ".") return false;
-        if (Map.instance.monsters[x, y] != null) return false;
+        if (Map.instance.currentFloor.layout[x, y].character != ".") return false;
+        if (Map.instance.currentFloor.monsters[x, y] != null) return false;
         return true;
     }
 

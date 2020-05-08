@@ -34,9 +34,9 @@ public class CombatManager : MonoBehaviour {
     }
 
     private bool InCombat() {
-        for (int x = 0; x < Map.instance.monsters.GetLength(0); x++) {
-            for (int y = 0; y < Map.instance.monsters.GetLength(1); y++) {
-                if (Map.instance.monsters[x, y] == null) continue;
+        for (int x = 0; x < Map.instance.currentFloor.monsters.GetLength(0); x++) {
+            for (int y = 0; y < Map.instance.currentFloor.monsters.GetLength(1); y++) {
+                if (Map.instance.currentFloor.monsters[x, y] == null) continue;
                 if (Map.instance.Visible(x, y)) return true;
             }
         }
@@ -54,10 +54,10 @@ public class CombatManager : MonoBehaviour {
     }
 
     private void RollInitiative() {
-        foreach (var monster in Monster.instances) monster.initiative = Random.Range(0, 100);
+        foreach (var monster in Monster.instances) if (monster.floor==Map.instance.currentFloorNumber) monster.initiative = Random.Range(0, 100);
         playerInitiative = Random.Range(0, 100);
         initiativeOrder.Clear();
-        foreach (var monster in Monster.instances) initiativeOrder.Add(monster);
+        foreach (var monster in Monster.instances) if (monster.floor==Map.instance.currentFloorNumber) initiativeOrder.Add(monster);
         initiativeOrder.Sort(new MonsterInitiativeComparer());
     }
 

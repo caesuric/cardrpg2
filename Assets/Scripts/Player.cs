@@ -17,6 +17,7 @@ public class Player {
     public int maxHp = 30;
     public int level = 1;
     public int experience = 0;
+    public int experienceToLevel = 10;
 
     public Player() {
         instance = this;
@@ -97,7 +98,7 @@ public class Player {
 
     public void FireProjectile(int x, int y) {
         UserInterface.Log("You launch a firebolt!");
-        Map.instance.projectiles[Map.instance.posX, Map.instance.posY] = new Projectile {
+        Map.instance.currentFloor.projectiles[Map.instance.posX, Map.instance.posY] = new Projectile {
             display = new DisplayCharacter {
                 character = "\u256c",
                 color = Color.yellow,
@@ -114,11 +115,11 @@ public class Player {
     public void ResolveTargetedCard(Projectile projectile) {
         var x = projectile.x;
         var y = projectile.y;
-        if (Map.instance.monsters[x, y] != null) {
+        if (Map.instance.currentFloor.monsters[x, y] != null) {
             UserInterface.Log("The firebolt strikes the goblin, dealing " + ((int)justPlayed.template.FindEffect("damage").value).ToString() + " damage.");
-            Map.instance.monsters[x, y].hp -= (int)justPlayed.template.FindEffect("damage").value;
+            Map.instance.currentFloor.monsters[x, y].hp -= (int)justPlayed.template.FindEffect("damage").value;
         }
-        CheckForMonsterDeath(Map.instance.monsters[x, y]);
+        CheckForMonsterDeath(Map.instance.currentFloor.monsters[x, y]);
         CheckForTurnOver();
     }
 
@@ -133,14 +134,26 @@ public class Player {
         if (monster == null) return;
         if (monster.hp <= 0) {
             UserInterface.Log("The goblin dies.");
+            GainExperience(1);
             Monster.instances.Remove(monster);
             CombatManager.instance.initiativeOrder.Remove(monster);
-            Map.instance.monsters[monster.x, monster.y] = null;
+            Map.instance.currentFloor.monsters[monster.x, monster.y] = null;
         }
     }
 
     private void CheckForTurnOver() {
         CombatManager.instance.CheckIfInCombat();
         if (CombatManager.instance.inCombat && actions <= 0) CombatManager.instance.TriggerMonsterTurn();
+    }
+
+    private void GainExperience(int amount) {
+        experience += amount;
+        if (experience>=experienceToLevel) {
+            level++;
+            maxHp += 10;
+            hp = maxHp;
+            experienceToLevel *= 2;
+            experience = 0;
+        }
     }
 }
