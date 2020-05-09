@@ -11,6 +11,8 @@ public class Projectile {
     public int xDest = 0;
     public int yDest = 0;
     public int range = 0;
+    public int radius = 0;
+    public int blastStage = -1;
     public static List<Projectile> instances = new List<Projectile>();
 
     public Projectile() {

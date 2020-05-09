@@ -47,8 +47,28 @@ public class Player {
                 }
             }
         };
-        for (int i = 0; i < 5; i++) deck.Add(new Card { template = firebolt });
-        for (int i = 0; i < 5; i++) deck.Add(new Card { template = energyBoost });
+        var fireball = new CardTemplate() {
+            cost = 6,
+            name = "Fireball",
+            text = "Deal 5 damage at range 10 with radius 2.",
+            effects = new List<CardEffect>() {
+                new CardEffect() {
+                    type="range",
+                    value=10
+                },
+                new CardEffect() {
+                    type="damage",
+                    value=5
+                },
+                new CardEffect() {
+                    type="radius",
+                    value=2
+                }
+            }
+        };
+        for (int i = 0; i < 4; i++) deck.Add(new Card { template = firebolt });
+        for (int i = 0; i < 4; i++) deck.Add(new Card { template = energyBoost });
+        for (int i = 0; i < 2; i++) deck.Add(new Card { template = fireball });
         ShuffleDeck();
         DrawCards(5);
     }
@@ -97,8 +117,9 @@ public class Player {
     }
 
     public void FireProjectile(int x, int y) {
-        UserInterface.Log("You launch a firebolt!");
-        Map.instance.currentFloor.projectiles[Map.instance.posX, Map.instance.posY] = new Projectile {
+        if (justPlayed.template.ContainsEffect("radius")) UserInterface.Log("You launch a fireball!");
+        else UserInterface.Log("You launch a firebolt!");
+        var proj = new Projectile {
             display = new DisplayCharacter {
                 character = "\u256c",
                 color = Color.yellow,
@@ -108,18 +129,34 @@ public class Player {
             yDest = y,
             x = Map.instance.posX,
             y = Map.instance.posY,
-            range = Inputs.instance.mouseRange
+            range = Inputs.instance.mouseRange,
         };
+        if (justPlayed.template.ContainsEffect("radius")) proj.radius = (int)justPlayed.template.FindEffect("radius").value;
+        Map.instance.currentFloor.projectiles[Map.instance.posX, Map.instance.posY] = proj;
     }
 
     public void ResolveTargetedCard(Projectile projectile) {
         var x = projectile.x;
         var y = projectile.y;
-        if (Map.instance.currentFloor.monsters[x, y] != null) {
-            UserInterface.Log("The firebolt strikes the goblin, dealing " + ((int)justPlayed.template.FindEffect("damage").value).ToString() + " damage.");
-            Map.instance.currentFloor.monsters[x, y].hp -= (int)justPlayed.template.FindEffect("damage").value;
+        if (justPlayed.template.ContainsEffect("radius")) {
+            var radius = (int)justPlayed.template.FindEffect("radius").value;
+            for (int xOf = x - radius; xOf <= x + radius; xOf++) {
+                for (int yOf = y - radius; yOf <= y + radius; yOf++) {
+                    if (Map.instance.currentFloor.monsters[xOf, yOf] != null) {
+                        UserInterface.Log("The fireball strikes the goblin, dealing " + ((int)justPlayed.template.FindEffect("damage").value).ToString() + " damage.");
+                        Map.instance.currentFloor.monsters[xOf, yOf].hp -= (int)justPlayed.template.FindEffect("damage").value;
+                    }
+                    CheckForMonsterDeath(Map.instance.currentFloor.monsters[xOf, yOf]);
+                }
+            }
         }
-        CheckForMonsterDeath(Map.instance.currentFloor.monsters[x, y]);
+        else {
+            if (Map.instance.currentFloor.monsters[x, y] != null) {
+                UserInterface.Log("The firebolt strikes the goblin, dealing " + ((int)justPlayed.template.FindEffect("damage").value).ToString() + " damage.");
+                Map.instance.currentFloor.monsters[x, y].hp -= (int)justPlayed.template.FindEffect("damage").value;
+            }
+            CheckForMonsterDeath(Map.instance.currentFloor.monsters[x, y]);
+        }
         CheckForTurnOver();
     }
 

@@ -46,6 +46,7 @@ public class Map : MonoBehaviour {
         var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
         for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
+                if (x == posX && y == posY) continue;
                 DisplayCharacter dc = null;
                 if ((Visible(x, y) || Seen(x, y)) && GetMonsters(x, y) != "") continue;
                 if ((Visible(x, y) || Seen(x, y)) && GetProjectiles(x, y) != "") continue;
@@ -82,6 +83,14 @@ public class Map : MonoBehaviour {
                 DisplayCharacter dc = null;
                 if (x >= 0 && y >= 0 && x < VirtualConsole.instance.width && y < VirtualConsole.instance.height) dc = currentFloor.projectiles[x, y].display;
                 if (Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
+                if (currentFloor.projectiles[x, y].blastStage > -1) {
+                    var proj = currentFloor.projectiles[x, y];
+                    for (int x2 = proj.x - proj.blastStage; x2 <= proj.x + proj.blastStage; x2++) {
+                        for (int y2 = proj.y - proj.blastStage; y2 <= proj.y + proj.blastStage; y2++) {
+                            if (Visible(x2, y2)) VirtualConsole.Set(x2 - posX + halfWidth, y2 - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
+                        }
+                    }
+                }
             }
         }
     }

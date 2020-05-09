@@ -24,7 +24,7 @@ public class CombatManager : MonoBehaviour {
             Map.instance.Draw();
         }
         else if (!InCombat() && inCombat) {
-            Inputs.instance.mouseMode = MouseMode.Default;
+            if (Inputs.instance.mouseMode != MouseMode.Animating) Inputs.instance.mouseMode = MouseMode.Default;
             while (Player.instance.hand.Count < 5) Player.instance.DrawCard();
             Player.instance.actions = 4;
             Player.instance.energy = 5;
