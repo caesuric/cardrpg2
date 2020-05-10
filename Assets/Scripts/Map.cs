@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.IO;
 
 public class Map : MonoBehaviour {
     public int posX = 0;
@@ -25,6 +26,7 @@ public class Map : MonoBehaviour {
             posX = currentFloor.startingX;
             posY = currentFloor.startingY;
             UserInterface.instance.SetUpCardPositions();
+            Save();
         }
     }
 
@@ -34,23 +36,116 @@ public class Map : MonoBehaviour {
             { "posY", posY },
             { "currentFloorNumber", currentFloorNumber },
             { "floors", SerializeFloors() },
-            { "numFloors", numFloors }
+            { "monsters", SerializeMonsters() },
+            { "numFloors", numFloors },
+            { "player", SerializePlayer() }
         };
         var output = JsonConvert.SerializeObject(save, Formatting.Indented);
-        Debug.Log(output);
+        var saveDirectory = Application.persistentDataPath;
+        File.WriteAllText(Path.Combine(saveDirectory, Player.instance.name + ".json"), output);
     }
 
     private List<Dictionary<string, object>> SerializeFloors() {
         var output = new List<Dictionary<string, object>>();
         foreach (var floor in floors) {
             var floorOutput = new Dictionary<string, object>();
+            var layout = "";
+            var seen = "";
+            for (int x=0; x<floor.layout.GetLength(0); x++) {
+                for (int y=0; y<floor.layout.GetLength(1); y++) {
+                    layout += floor.layout[x, y].character;
+                    if (floor.seen[x, y]) seen += "1";
+                    else seen += "0";
+                }
+            }
+            floorOutput["layout"] = layout;
+            floorOutput["seen"] = seen;
             output.Add(floorOutput);
         }
         return output;
     }
 
-    public void Load() {
+    private List<Dictionary<string, object>> SerializeMonsters() {
+        var output = new List<Dictionary<string, object>>();
+        foreach (var monster in Monster.instances) {
+            var displayChar = new Dictionary<string, object> {
+                ["character"] = monster.display.character,
+                ["colorR"] = monster.display.color.r,
+                ["colorG"] = monster.display.color.g,
+                ["colorB"] = monster.display.color.b,
+                ["bgColorR"] = monster.display.bgColor.r,
+                ["bgColorG"] = monster.display.bgColor.g,
+                ["bgColorB"] = monster.display.bgColor.b
+            };
+            var monsterOutput = new Dictionary<string, object> {
+                ["hp"] = monster.hp,
+                ["maxHp"] = monster.maxHp,
+                ["displayCharacter"] = displayChar,
+                ["x"] = monster.x,
+                ["y"] = monster.y,
+                ["floor"] = monster.floor,
+                ["initiative"] = monster.initiative
+            };
+            output.Add(monsterOutput);
+        }
+        return output;
+    }
 
+    private Dictionary<string, object> SerializePlayer() {
+        var output = new Dictionary<string, object> {
+            ["energy"] = Player.instance.energy,
+            ["actions"] = Player.instance.actions,
+            ["hp"] = Player.instance.hp,
+            ["maxHp"] = Player.instance.maxHp,
+            ["level"] = Player.instance.level,
+            ["experience"] = Player.instance.experience,
+            ["experienceToLevel"] = Player.instance.experienceToLevel,
+            ["name"] = Player.instance.name,
+            ["cardTemplates"] = SerializeCardTemplates(),
+            ["deck"] = SerializeCards(Player.instance.deck),
+            ["hand"] = SerializeCards(Player.instance.hand),
+            ["discard"] = SerializeCards(Player.instance.discard),
+            ["inPlay"] = SerializeCards(Player.instance.inPlay),
+            ["justPlayed"] = SerializeCard(Player.instance.justPlayed)
+        };
+        return output;
+    }
+
+    private List<Dictionary<string, object>> SerializeCardTemplates() {
+        var output = new List<Dictionary<string, object>>();
+        foreach (var template in CardTemplate.instances) {
+            var effects = new List<Dictionary<string, object>>();
+            foreach (var effect in template.effects) {
+                effects.Add(new Dictionary<string, object> {
+                    ["type"] = effect.type,
+                    ["value"] = effect.value
+                });
+            }
+            var templateOutput = new Dictionary<string, object> {
+                ["name"] = template.name,
+                ["cost"] = template.cost,
+                ["text"] = template.text,
+                ["effects"] = effects
+            };
+            output.Add(templateOutput);
+        }
+        return output;
+    }
+
+    private List<int> SerializeCards(List<Card> cards) {
+        var output = new List<int>();
+        foreach (var card in cards) output.Add(SerializeCard(card));
+        return output;
+    }
+
+    private int SerializeCard(Card card) {
+        if (card == null) return -1;
+        return CardTemplate.instances.IndexOf(card.template);
+    }
+
+    public void Load() {
+        //todo: load
+        //tint each map floor
     }
 
     private void BuildFloors() {

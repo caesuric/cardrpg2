@@ -34,6 +34,7 @@ public class CombatManager : MonoBehaviour {
     }
 
     private bool InCombat() {
+        if (Map.instance.currentFloor == null) return false;
         for (int x = 0; x < Map.instance.currentFloor.monsters.GetLength(0); x++) {
             for (int y = 0; y < Map.instance.currentFloor.monsters.GetLength(1); y++) {
                 if (Map.instance.currentFloor.monsters[x, y] == null) continue;

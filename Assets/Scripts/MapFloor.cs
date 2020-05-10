@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 public class MapFloor {
-    public DisplayCharacter[,] layout = new DisplayCharacter[80, 60];
-    public Monster[,] monsters = new Monster[80, 60];
-    public Projectile[,] projectiles = new Projectile[80, 60];
-    public bool[,] seen = new bool[80, 60];
+    public static readonly int xSize = 160;
+    public static readonly int ySize = 120;
+    public DisplayCharacter[,] layout = new DisplayCharacter[xSize, ySize];
+    public Monster[,] monsters = new Monster[xSize, ySize];
+    public Projectile[,] projectiles = new Projectile[xSize, ySize];
+    public bool[,] seen = new bool[xSize, ySize];
     public int startingX = 0;
     public int startingY = 0;
     public int endingX = -1;
@@ -36,7 +38,7 @@ public class MapFloor {
         Debug.Log(output);
     }
 
-    private void TintMap() {
+    public void TintMap() {
         for (int x=0; x<layout.GetLength(0); x++) {
             for (int y=0; y<layout.GetLength(1); y++) {
                 var point = layout[x, y];
@@ -55,8 +57,8 @@ public class MapFloor {
 
     private void AddExit() {
         while (endingX == -1 || endingY == -1 || layout[endingX, endingY].character != ".") {
-            endingX = Random.Range(0, 80);
-            endingY = Random.Range(0, 60);
+            endingX = Random.Range(0, xSize);
+            endingY = Random.Range(0, ySize);
         }
         layout[endingX, endingY].character = ">";
     }

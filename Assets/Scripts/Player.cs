@@ -18,6 +18,7 @@ public class Player {
     public int level = 1;
     public int experience = 0;
     public int experienceToLevel = 10;
+    public string name = "Bob";
 
     public Player() {
         instance = this;
