@@ -34,9 +34,11 @@ public class Map : MonoBehaviour {
     }
 
     public void Draw() {
-        DrawMap();
-        DrawMonsters();
-        DrawProjectiles();
+        if (currentFloor!=null) {
+            DrawMap();
+            DrawMonsters();
+            DrawProjectiles();
+        }
         UserInterface.Draw();
         CombatManager.instance.CheckIfInCombat();
     }
@@ -109,6 +111,7 @@ public class Map : MonoBehaviour {
     }
 
     public bool Visible(int x, int y) {
+        if (currentFloor == null) return false;
         return currentFloor.Visible(x, y);
     }
 
@@ -121,6 +124,7 @@ public class Map : MonoBehaviour {
     }
 
     public bool Seen(int x, int y) {
+        if (currentFloor == null) return false;
         return currentFloor.Seen(x, y);
     }
 

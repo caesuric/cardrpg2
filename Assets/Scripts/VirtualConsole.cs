@@ -98,4 +98,34 @@ public class VirtualConsole : MonoBehaviour {
             else instance.backgroundBlocks[xPos, y + 1].color = new Color(bgR2, bgG2, bgB2);
         }
     }
+
+    public static void DrawBox(int x0, int y0, int width, int height, bool active = false) {
+        var r = 0.1f;
+        var g = 0.1f;
+        var b = 0.1f;
+        if (active) {
+            r = 0;
+            g = 0.5f;
+            b = 0;
+        }
+        for (int x = x0; x < x0 + width; x++) {
+            for (int y = y0; y < y0 + height; y++) {
+                if (!active) Set(x, y, " ");
+                else Set(x, y, " ", 1, 1, 1, 0, 0.5f, 0);
+            }
+        }
+        for (int x = x0; x < x0 + width; x++) {
+            Set(x, y0, "\u2550", 1, 1, 1, r, g, b);
+            Set(x, y0 + height, "\u2550", 1, 1, 1, r, g, b);
+        }
+
+        for (int y = y0; y < y0 + height; y++) {
+            Set(x0, y, "\u2551", 1, 1, 1, r, g, b);
+            Set(x0 + width, y, "\u2551", 1, 1, 1, r, g, b);
+        }
+        Set(x0, y0, "\u255a", 1, 1, 1, r, g, b);
+        Set(x0, y0 + height, "\u2554", 1, 1, 1, r, g, b);
+        Set(x0 + width, y0, "\u255d", 1, 1, 1, r, g, b);
+        Set(x0 + width, y0 + height, "\u2557", 1, 1, 1, r, g, b);
+    }
 }

@@ -29,11 +29,11 @@ public class UserInterface : MonoBehaviour {
     }
 
     public static void Draw() {
-        instance.DrawCards();
         instance.DrawLog();
         instance.DrawFPS();
         instance.DrawHUD();
-        instance.DrawTooltip();
+        if (Inputs.instance.cardDragged < 0) instance.DrawTooltip();
+        instance.DrawCards();
     }
 
     public static void Log(string message) {
@@ -49,24 +49,7 @@ public class UserInterface : MonoBehaviour {
         var mapX = mouseX + Map.instance.posX - halfWidth;
         var mapY = mouseY + Map.instance.posY - halfHeight;
         if (!Map.instance.Visible(mapX, mapY) && !Map.instance.Seen(mapX, mapY)) return;
-        for (int x = mouseX + 1; x < mouseX + 21; x++) {
-            for (int y = mouseY + 1; y < mouseY + 5; y++) {
-                VirtualConsole.Set(x, y, " ");
-            }
-        }
-        for (int x = mouseX + 1; x < mouseX + 21; x++) {
-            VirtualConsole.Set(x, mouseY + 1, "\u2550");
-            VirtualConsole.Set(x, mouseY + 5, "\u2550");
-        }
-
-        for (int y = mouseY + 1; y < mouseY + 5; y++) {
-            VirtualConsole.Set(mouseX + 1, y, "\u2551");
-            VirtualConsole.Set(mouseX + 21, y, "\u2551");
-        }
-        VirtualConsole.Set(mouseX + 1, mouseY + 1, "\u255a");
-        VirtualConsole.Set(mouseX + 1, mouseY + 5, "\u2554");
-        VirtualConsole.Set(mouseX + 21, mouseY + 1, "\u255d");
-        VirtualConsole.Set(mouseX + 21, mouseY + 5, "\u2557");
+        VirtualConsole.DrawBox(mouseX + 1, mouseY + 1, 20, 4);
         WriteTooltipDescription(mapX, mapY, mouseX + 2, mouseY + 1, 18, 3);
     }
 
@@ -94,24 +77,7 @@ public class UserInterface : MonoBehaviour {
     }
 
     private void DrawLog() {
-        for (int x = 47; x < VirtualConsole.instance.width; x++) {
-            for (int y = 16; y < 23; y++) {
-                VirtualConsole.Set(x, y, " ");
-            }
-        }
-        for (int x=47; x<VirtualConsole.instance.width; x++) {
-            VirtualConsole.Set(x, 16, "\u2550");
-            VirtualConsole.Set(x, 23, "\u2550");
-        }
-
-        for (int y=16; y<23; y++) {
-            VirtualConsole.Set(47, y, "\u2551");
-            VirtualConsole.Set(VirtualConsole.instance.width - 1, y, "\u2551");
-        }
-        VirtualConsole.Set(47, 16, "\u255a");
-        VirtualConsole.Set(47, 23, "\u2554");
-        VirtualConsole.Set(VirtualConsole.instance.width - 1, 16, "\u255d");
-        VirtualConsole.Set(VirtualConsole.instance.width - 1, 23, "\u2557");
+        VirtualConsole.DrawBox(47, 16, VirtualConsole.instance.width - 48, 7);
         DrawLogMessages();
     }
 
@@ -121,9 +87,6 @@ public class UserInterface : MonoBehaviour {
         foreach (var logMessage in logMessages) concat += logMessage + "\n";
         if (concat!="") concat = concat.Substring(0, concat.Length - 1);
         concat = PruneLinesToFit(concat);
-        //for (int i=0; i<logMessages.Count; i++) {
-        //    VirtualConsole.Write(logMessages[i], 48, 21 - i, VirtualConsole.instance.width - 50, 1);
-        //}
         VirtualConsole.Write(concat, 48, 16, VirtualConsole.instance.width - 50, 6);
     }
 
@@ -152,23 +115,7 @@ public class UserInterface : MonoBehaviour {
     }
 
     private void DrawCards() {
-        for (int x = 0; x < VirtualConsole.instance.width; x++) {
-            for (int y = 0; y < 15; y++) {
-                VirtualConsole.Set(x, y, " ");
-            }
-        }
-        for (int x = 0; x < VirtualConsole.instance.width; x++) {
-            VirtualConsole.Set(x, 0, "\u2550");
-            VirtualConsole.Set(x, 15, "\u2550");
-        }
-        for (int y = 0; y < 15; y++) {
-            VirtualConsole.Set(0, y, "\u2551");
-            VirtualConsole.Set(VirtualConsole.instance.width - 1, y, "\u2551");
-        }
-        VirtualConsole.Set(0, 0, "\u255a");
-        VirtualConsole.Set(0, 15, "\u2554");
-        VirtualConsole.Set(VirtualConsole.instance.width - 1, 0, "\u255d");
-        VirtualConsole.Set(VirtualConsole.instance.width - 1, 15, "\u2557");
+        VirtualConsole.DrawBox(0, 0, VirtualConsole.instance.width - 1, 15);
         DrawIndividualCards();
     }
 
@@ -191,46 +138,13 @@ public class UserInterface : MonoBehaviour {
         foreach (var card in Player.instance.hand) {
             var active = card.beingDragged;
             var position = card.position;
-            for (int x = (int)position.x; x < (int)position.x + cardSize; x++) {
-                for (int y = (int)position.y; y < (int)position.y + 14; y++) {
-                    if (!active) VirtualConsole.Set(x, y, " ");
-                    else VirtualConsole.Set(x, y, " ", 1, 1, 1, 0, 0.5f, 0);
-                }
-            }
-            for (int x = (int)position.x; x < (int)position.x + cardSize; x++) {
-                if (!active) {
-                    VirtualConsole.Set(x, (int)position.y, "\u2550");
-                    VirtualConsole.Set(x, (int)position.y + 13, "\u2550");
-                }
-                else {
-                    VirtualConsole.Set(x, (int)position.y, "\u2550", 1, 1, 1, 0, 0.5f, 0);
-                    VirtualConsole.Set(x, (int)position.y + 13, "\u2550", 1, 1, 1, 0, 0.5f, 0);
-                }
-            }
-            for (int y = (int)position.y; y < (int)position.y + 14; y++) {
-                if (!active) {
-                    VirtualConsole.Set((int)position.x, y, "\u2551");
-                    VirtualConsole.Set((int)position.x + cardSize - 1, y, "\u2551");
-                }
-                else {
-                    VirtualConsole.Set((int)position.x, y, "\u2551", 1, 1, 1, 0, 0.5f, 0);
-                    VirtualConsole.Set((int)position.x + cardSize - 1, y, "\u2551", 1, 1, 1, 0, 0.5f, 0);
-                }
-            }
+            VirtualConsole.DrawBox((int)position.x, (int)position.y, cardSize - 1, 13, active);
             if (!active) {
-                VirtualConsole.Set((int)position.x, (int)position.y, "\u255a");
-                VirtualConsole.Set((int)position.x, (int)position.y + 13, "\u2554");
-                VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y, "\u255d");
-                VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y + 13, "\u2557");
                 VirtualConsole.Write(card.template.name, (int)position.x + 1, (int)position.y + 11, cardSize - 4, 1);
                 VirtualConsole.Write("Cost: " + card.template.cost.ToString(), (int)position.x + 1, (int)position.y + 10, cardSize - 4, 1);
                 VirtualConsole.Write(card.template.text, (int)position.x + 1, (int)position.y + 2, cardSize - 4, 8);
             }
             else {
-                VirtualConsole.Set((int)position.x, (int)position.y, "\u255a", 1, 1, 1, 0, 0.5f, 0);
-                VirtualConsole.Set((int)position.x, (int)position.y + 13, "\u2554", 1, 1, 1, 0, 0.5f, 0);
-                VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y, "\u255d", 1, 1, 1, 0, 0.5f, 0);
-                VirtualConsole.Set((int)position.x + cardSize - 1, (int)position.y + 13, "\u2557", 1, 1, 1, 0, 0.5f, 0);
                 VirtualConsole.Write(card.template.name, (int)position.x + 1, (int)position.y + 11, cardSize - 4, 1, 1, 1, 1, 0, 0.5f, 0);
                 VirtualConsole.Write("Cost: " + card.template.cost.ToString(), (int)position.x + 1, (int)position.y + 10, cardSize - 4, 1, 1, 1, 1, 0, 0.5f, 0);
                 VirtualConsole.Write(card.template.text, (int)position.x + 1, (int)position.y + 2, cardSize - 4, 8, 1, 1, 1, 0, 0.5f, 0);
