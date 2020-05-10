@@ -24,7 +24,6 @@ public class Map : MonoBehaviour {
             posX = currentFloor.startingX;
             posY = currentFloor.startingY;
             UserInterface.instance.SetUpCardPositions();
-            Draw();
         }
     }
 

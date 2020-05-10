@@ -31,6 +31,14 @@ public class Inputs : MonoBehaviour
         if (mouseMode == MouseMode.Animating) return;
         if (Player.instance.hp <= 0) return;
 
+        if (mouseMode==MouseMode.MainMenu) {
+            if (Input.GetMouseButtonUp(0) && MenuManager.instance.ClickedStart()) {
+                mouseMode = MouseMode.Default;
+                Map.instance.Draw();
+            }
+            return;
+        }
+
         if (CombatManager.instance.inCombat) {
             var prevMouseDown = mouseDown;
             if (Input.GetMouseButtonDown(0)) mouseDown = true;

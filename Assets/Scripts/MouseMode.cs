@@ -7,5 +7,6 @@ using System.Threading.Tasks;
 public enum MouseMode {
     Default = 0,
     Targeting = 1,
-    Animating = 2
+    Animating = 2,
+    MainMenu = 3
 }
