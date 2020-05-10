@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public class Map : MonoBehaviour {
     public int posX = 0;
@@ -25,6 +26,31 @@ public class Map : MonoBehaviour {
             posY = currentFloor.startingY;
             UserInterface.instance.SetUpCardPositions();
         }
+    }
+
+    public void Save() {
+        var save = new Dictionary<string, object> {
+            { "posX", posX },
+            { "posY", posY },
+            { "currentFloorNumber", currentFloorNumber },
+            { "floors", SerializeFloors() },
+            { "numFloors", numFloors }
+        };
+        var output = JsonConvert.SerializeObject(save, Formatting.Indented);
+        Debug.Log(output);
+    }
+
+    private List<Dictionary<string, object>> SerializeFloors() {
+        var output = new List<Dictionary<string, object>>();
+        foreach (var floor in floors) {
+            var floorOutput = new Dictionary<string, object>();
+            output.Add(floorOutput);
+        }
+        return output;
+    }
+
+    public void Load() {
+
     }
 
     private void BuildFloors() {
