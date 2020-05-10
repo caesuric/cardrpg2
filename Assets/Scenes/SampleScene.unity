@@ -175,6 +175,7 @@ MonoBehaviour:
   height: 60
   xOffset: 6
   yOffset: 5
+  testMode: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

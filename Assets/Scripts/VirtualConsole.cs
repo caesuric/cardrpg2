@@ -13,6 +13,7 @@ public class VirtualConsole : MonoBehaviour {
     public SpriteRenderer[,] backgroundBlocks;
     public TextMesh[,] letters;
     public static VirtualConsole instance = null;
+    public bool testMode = false;
     // Start is called before the first frame update
     void Start() {
         instance = this;
@@ -28,24 +29,32 @@ public class VirtualConsole : MonoBehaviour {
                 go.transform.position = new Vector3(xPos, yPos, -0.25f);
                 go.transform.SetParent(letterCollection.transform);
                 backgroundBlocks[x, y] = go.GetComponent<SpriteRenderer>();
-                //float randomR = Random.Range(0f, 1f);
-                //float randomG = Random.Range(0f, 1f);
-                //float randomB = Random.Range(0f, 1f);
-                //backgroundBlocks[x, y].color = new Color(randomR, randomG, randomB);
-                backgroundBlocks[x, y].color = new Color(0, 0, 0);
+                if (testMode) {
+                    float randomR = Random.Range(0f, 1f);
+                    float randomG = Random.Range(0f, 1f);
+                    float randomB = Random.Range(0f, 1f);
+                    backgroundBlocks[x, y].color = new Color(randomR, randomG, randomB);
+                }
+                else {
+                    backgroundBlocks[x, y].color = new Color(0, 0, 0);
+                }
                 var go2 = Instantiate(textPrefab);
                 go2.transform.position = new Vector3(xPos, yPos, -0.25f);
                 go2.transform.SetParent(letterCollection.transform);
                 letters[x, y] = go2.GetComponent<TextMesh>();
-                //int randomLetter = Random.Range(0, 52);
-                //if (randomLetter < 26) letters[x, y].text = ((char)('a' + randomLetter)).ToString();
-                //else letters[x, y].text = ((char)('A' + randomLetter - 26)).ToString();
-                letters[x, y].text = " ";
-                //randomR = Random.Range(0f, 1f);
-                //randomG = Random.Range(0f, 1f);
-                //randomB = Random.Range(0f, 1f);
-                //letters[x, y].color = new Color(randomR, randomG, randomB);
-                letters[x, y].color = new Color(1, 1, 1);
+                if (testMode) {
+                    int randomLetter = Random.Range(0, 52);
+                    if (randomLetter < 26) letters[x, y].text = ((char)('a' + randomLetter)).ToString();
+                    else letters[x, y].text = ((char)('A' + randomLetter - 26)).ToString();
+                }
+                else letters[x, y].text = " ";
+                if (testMode) {
+                    float randomR = Random.Range(0f, 1f);
+                    float randomG = Random.Range(0f, 1f);
+                    float randomB = Random.Range(0f, 1f);
+                    letters[x, y].color = new Color(randomR, randomG, randomB);
+                }
+                else letters[x, y].color = new Color(1, 1, 1);
             }
         }
     }
