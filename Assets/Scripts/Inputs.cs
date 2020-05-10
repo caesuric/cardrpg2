@@ -49,9 +49,12 @@ public class Inputs : MonoBehaviour
                     Player.instance.FireProjectile(x, y);
                 }
             }
-            oldMouseX = mouseX;
-            oldMouseY = mouseY;
         }
+
+        //draw for tooltip
+        if (mouseX != oldMouseX || mouseY != oldMouseY) Map.instance.Draw();
+        oldMouseX = mouseX;
+        oldMouseY = mouseY;
 
         //draw card
         if (CombatManager.instance.inCombat && Player.instance.actions > 0 && Input.GetKeyDown(KeyCode.Space) && Player.instance.hand.Count < 5) {
@@ -232,6 +235,8 @@ public class Inputs : MonoBehaviour
         if (Map.instance.currentFloor.monsters[x, y] != null) return false;
         if (Map.instance.currentFloor.layout[x, y].character == "." || Map.instance.currentFloor.layout[x, y].character == "+") {
             Map.instance.currentFloor.layout[x, y].character = ".";
+            Map.instance.currentFloor.layout[x, y].color = Color.white;
+            Map.instance.currentFloor.layout[x, y].bgColor = Color.black;
             return true;
         }
         else if (Map.instance.currentFloor.layout[x, y].character == ">" || Map.instance.currentFloor.layout[x, y].character == "<") return true;

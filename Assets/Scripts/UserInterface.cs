@@ -7,7 +7,17 @@ public class UserInterface : MonoBehaviour {
     public int framesToCount = 300;
     private List<float> counts = new List<float>();
     private List<string> logMessages = new List<string>();
-    // Start is called before the first frame update
+    private static readonly Dictionary<string, string> mapBlockDescriptions = new Dictionary<string, string> {
+        { ".", "Stone floor" },
+        { "#", "Stone wall" },
+        { "+", "Wooden door" },
+        { ">", "Stairs leading down" },
+        { "<", "Stairs leading up" }
+    };
+    private static readonly Dictionary<string, string> monsterDescriptions = new Dictionary<string, string> {
+        { "g", "Goblin" }
+    };
+
     void Start() {
         instance = this;
     }
@@ -23,10 +33,57 @@ public class UserInterface : MonoBehaviour {
         instance.DrawLog();
         instance.DrawFPS();
         instance.DrawHUD();
+        instance.DrawTooltip();
     }
 
     public static void Log(string message) {
         instance.logMessages.Add(message);
+    }
+
+    private void DrawTooltip() {
+        var mouseX = Inputs.instance.mouseX;
+        var mouseY = Inputs.instance.mouseY;
+        if (mouseY <= 15) return;
+        var halfWidth = VirtualConsole.instance.width / 2;
+        var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
+        var mapX = mouseX + Map.instance.posX - halfWidth;
+        var mapY = mouseY + Map.instance.posY - halfHeight;
+        if (!Map.instance.Visible(mapX, mapY) && !Map.instance.Seen(mapX, mapY)) return;
+        for (int x = mouseX + 1; x < mouseX + 21; x++) {
+            for (int y = mouseY + 1; y < mouseY + 5; y++) {
+                VirtualConsole.Set(x, y, " ");
+            }
+        }
+        for (int x = mouseX + 1; x < mouseX + 21; x++) {
+            VirtualConsole.Set(x, mouseY + 1, "\u2550");
+            VirtualConsole.Set(x, mouseY + 5, "\u2550");
+        }
+
+        for (int y = mouseY + 1; y < mouseY + 5; y++) {
+            VirtualConsole.Set(mouseX + 1, y, "\u2551");
+            VirtualConsole.Set(mouseX + 21, y, "\u2551");
+        }
+        VirtualConsole.Set(mouseX + 1, mouseY + 1, "\u255a");
+        VirtualConsole.Set(mouseX + 1, mouseY + 5, "\u2554");
+        VirtualConsole.Set(mouseX + 21, mouseY + 1, "\u255d");
+        VirtualConsole.Set(mouseX + 21, mouseY + 5, "\u2557");
+        WriteTooltipDescription(mapX, mapY, mouseX + 2, mouseY + 1, 18, 3);
+    }
+
+    private void WriteTooltipDescription(int mapX, int mapY, int x, int y, int width, int height) {
+        var output = "";
+        var mapBlock = Map.instance.currentFloor.layout[mapX, mapY];
+        if (mapBlockDescriptions.ContainsKey(mapBlock.character)) {
+            output += mapBlockDescriptions[mapBlock.character] + "\n";
+        }
+        if (Map.instance.Visible(mapX,mapY)) {
+            var monster = Map.instance.currentFloor.monsters[mapX, mapY];
+            if (monster != null && monsterDescriptions.ContainsKey(monster.display.character)) {
+                output += monsterDescriptions[monster.display.character] + "\n";
+            }
+        }
+        if (Map.instance.posX == mapX && Map.instance.posY == mapY) output += "You";
+        VirtualConsole.Write(output, x, y, width, height);
     }
 
     private int AverageCount() {
@@ -196,13 +253,13 @@ public class UserInterface : MonoBehaviour {
         var discard = "Cards in Discard: " + Player.instance.discard.Count.ToString();
         var floor = "Floor: " + (Map.instance.currentFloorNumber + 1).ToString();
         var experience = "Experience: " + Player.instance.experience.ToString() + "/" + Player.instance.experienceToLevel.ToString();
-        VirtualConsole.Write(level, 0, VirtualConsole.instance.height - 2, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(energy, 0, VirtualConsole.instance.height - 3, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(deck, 0, VirtualConsole.instance.height - 4, 18, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(discard, 0, VirtualConsole.instance.height - 5, 21, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.Write(floor, 0, VirtualConsole.instance.height - 6, 9, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
-        VirtualConsole.DrawBar(hp, Player.instance.hp, Player.instance.maxHp, 0, VirtualConsole.instance.height - 7, 23, 1, 1, 1, 1, 0, 0, 0.5f, 0, 0);
-        VirtualConsole.DrawBar(actions, Player.instance.actions, 4, 0, VirtualConsole.instance.height - 8, 23, 0, 0, 0, 0, 1, 0, 0, 0.5f, 0);
-        VirtualConsole.DrawBar(experience, Player.instance.experience, Player.instance.experienceToLevel, 0, VirtualConsole.instance.height - 9, 23, 1, 1, 1, 0, 0, 1, 0, 0, 0.5f);
+        VirtualConsole.Write(floor, 0, VirtualConsole.instance.height - 2, 9, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(level, 0, VirtualConsole.instance.height - 3, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.DrawBar(hp, Player.instance.hp, Player.instance.maxHp, 0, VirtualConsole.instance.height - 4, 23, 1, 1, 1, 1, 0, 0, 0.5f, 0, 0);
+        VirtualConsole.DrawBar(experience, Player.instance.experience, Player.instance.experienceToLevel, 0, VirtualConsole.instance.height - 5, 23, 1, 1, 1, 0, 0, 1, 0, 0, 0.5f);
+        VirtualConsole.DrawBar(actions, Player.instance.actions, 4, 0, VirtualConsole.instance.height - 6, 23, 0, 0, 0, 0, 1, 0, 0, 0.5f, 0);
+        VirtualConsole.Write(energy, 0, VirtualConsole.instance.height - 7, 10, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(deck, 0, VirtualConsole.instance.height - 8, 18, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
+        VirtualConsole.Write(discard, 0, VirtualConsole.instance.height - 9, 21, 1, 1, 1, 1, 0.25f, 0.25f, 0.25f);
     }
 }

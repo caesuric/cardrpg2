@@ -22,6 +22,7 @@ public class MapFloor {
         AddRooms();
         if (floor > 0) AddEntrance();
         if (floor < 4) AddExit();
+        TintMap();
     }
 
     private void Print() {
@@ -33,6 +34,19 @@ public class MapFloor {
             output += "\n";
         }
         Debug.Log(output);
+    }
+
+    private void TintMap() {
+        for (int x=0; x<layout.GetLength(0); x++) {
+            for (int y=0; y<layout.GetLength(1); y++) {
+                var point = layout[x, y];
+                if (point.character == "#") point.bgColor = new Color(0.6f, 0.6f, 0.6f);
+                else if (point.character=="+") {
+                    point.color = Color.yellow;
+                    point.bgColor = new Color(0.65f, 0.16f, 0.16f);
+                }
+            }
+        }
     }
 
     private void AddEntrance() {
@@ -161,7 +175,7 @@ public class MapFloor {
     }
 
     private void AddMonsters(int x, int y, int width, int height) {
-        int roll = Random.Range(1, 4);
+        int roll = Random.Range(1, 3);
         for (int i = 0; i < roll; i++) AddMonster(x, y, width, height);
     }
 
