@@ -412,7 +412,7 @@ MonoBehaviour:
   cardDragged: -1
   cardDragCoordsX: -1
   cardDragCoordsY: -1
-  mouseMode: 0
+  mouseMode: 3
   mouseRange: 0
 --- !u!114 &1967257067
 MonoBehaviour:

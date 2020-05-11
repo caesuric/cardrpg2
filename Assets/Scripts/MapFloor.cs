@@ -39,11 +39,12 @@ public class MapFloor {
     }
 
     public void TintMap() {
-        for (int x=0; x<layout.GetLength(0); x++) {
-            for (int y=0; y<layout.GetLength(1); y++) {
+        Debug.Log(layout.GetLength(1));
+        for (int x = 0; x < layout.GetLength(0); x++) {
+            for (int y = 0; y < layout.GetLength(1); y++) {
                 var point = layout[x, y];
                 if (point.character == "#") point.bgColor = new Color(0.6f, 0.6f, 0.6f);
-                else if (point.character=="+") {
+                else if (point.character == "+") {
                     point.color = Color.yellow;
                     point.bgColor = new Color(0.65f, 0.16f, 0.16f);
                 }
@@ -79,8 +80,8 @@ public class MapFloor {
     }
 
     private void DigStartingRoom() {
-        startingX = Random.Range(3, 77);
-        startingY = Random.Range(3, 57);
+        startingX = Random.Range(3, xSize - 3);
+        startingY = Random.Range(3, ySize - 3);
         for (int x = startingX - 2; x < startingX + 3; x++) {
             for (int y = startingY - 2; y < startingY + 3; y++) {
                 layout[x, y].character = ".";

@@ -16,7 +16,7 @@ public class Inputs : MonoBehaviour
     public int cardDragged = -1;
     public int cardDragCoordsX = -1;
     public int cardDragCoordsY = -1;
-    public MouseMode mouseMode = MouseMode.Default;
+    public MouseMode mouseMode = MouseMode.MainMenu;
     public int mouseRange = 0;
 
     // Start is called before the first frame update
