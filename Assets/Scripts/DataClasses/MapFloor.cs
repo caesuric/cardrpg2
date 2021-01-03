@@ -39,7 +39,6 @@ public class MapFloor {
     }
 
     public void TintMap() {
-        Debug.Log(layout.GetLength(1));
         for (int x = 0; x < layout.GetLength(0); x++) {
             for (int y = 0; y < layout.GetLength(1); y++) {
                 var point = layout[x, y];
@@ -47,6 +46,10 @@ public class MapFloor {
                 else if (point.character == "+") {
                     point.color = Color.yellow;
                     point.bgColor = new Color(0.65f, 0.16f, 0.16f);
+                }
+                else {
+                    point.color = Color.white;
+                    point.bgColor = Color.black;
                 }
             }
         }

@@ -137,4 +137,12 @@ public class VirtualConsole : MonoBehaviour {
         Set(x0 + width, y0, "\u255d", 1, 1, 1, r, g, b);
         Set(x0 + width, y0 + height, "\u2557", 1, 1, 1, r, g, b);
     }
+
+    public static void Clear() {
+        for (int x=0; x<instance.width; x++) {
+            for (int y=0; y<instance.height; y++) {
+                Set(x, y, "", 0, 0, 0, 0, 0, 0);
+            }
+        }
+    }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using System.IO;
+using Newtonsoft.Json.Linq;
 
 public class Map : MonoBehaviour {
     public int posX = 0;
@@ -12,6 +13,7 @@ public class Map : MonoBehaviour {
     public List<MapFloor> floors = new List<MapFloor>();
     public int numFloors = 5;
     private bool initialized = false;
+    private bool loaded = false;
     public static Map instance = null;
 
     void Start() {
@@ -20,14 +22,20 @@ public class Map : MonoBehaviour {
     }
 
     void Update() {
-        if (!initialized) {
+        if (!initialized && Inputs.instance.mouseMode == MouseMode.Default) {
             initialized = true;
-            BuildFloors();
-            posX = currentFloor.startingX;
-            posY = currentFloor.startingY;
+            if (!loaded) {
+                BuildFloors();
+                posX = currentFloor.startingX;
+                posY = currentFloor.startingY;
+            }
             UserInterface.instance.SetUpCardPositions();
-            Save();
+            if (!loaded) Save();
         }
+    }
+
+    private void OnApplicationQuit() {
+        if (Player.instance.hp > 0) Save();
     }
 
     public void Save() {
@@ -45,6 +53,12 @@ public class Map : MonoBehaviour {
         File.WriteAllText(Path.Combine(saveDirectory, Player.instance.name + ".json"), output);
     }
 
+    public void DeleteSave() {
+        var saveDirectory = Application.persistentDataPath;
+        var filePath = Path.Combine(saveDirectory, Player.instance.name + ".json");
+        if (File.Exists(filePath)) File.Delete(filePath);
+    }
+
     private List<Dictionary<string, object>> SerializeFloors() {
         var output = new List<Dictionary<string, object>>();
         foreach (var floor in floors) {
@@ -60,9 +74,30 @@ public class Map : MonoBehaviour {
             }
             floorOutput["layout"] = layout;
             floorOutput["seen"] = seen;
+            floorOutput["width"] = floor.layout.GetLength(0);
+            floorOutput["height"] = floor.layout.GetLength(1);
             output.Add(floorOutput);
         }
         return output;
+    }
+
+    private void DeserializeFloors(object rawData) {
+        var data = (JArray)rawData;
+        floors.Clear();
+        int floorNumber = 0;
+        foreach (var floor in data) {
+            var floorOutput = new MapFloor(floorNumber);
+            int cursor = 0;
+            for (int x = 0; x<(int)(long)floor["width"]; x++) {
+                for (int y=0; y<(int)(long)floor["height"]; y++) {
+                    floorOutput.layout[x, y].character = ((string)floor["layout"])[cursor].ToString();
+                    floorOutput.seen[x, y] = ((string)floor["layout"])[cursor].ToString() == "1";
+                    cursor++;
+                }
+            }
+            floorNumber++;
+            floors.Add(floorOutput);
+        }
     }
 
     private List<Dictionary<string, object>> SerializeMonsters() {
@@ -91,6 +126,32 @@ public class Map : MonoBehaviour {
         return output;
     }
 
+    private void DeserializeMonsters(object rawData) {
+        var data = (JArray)rawData;
+        Monster.instances.Clear();
+        foreach (var monster in data) {
+            var displayCharacter = (JObject)monster["displayCharacter"];
+            var monsterOutput = new Monster {
+                hp = (int)(long)monster["hp"],
+                maxHp = (int)(long)monster["maxHp"],
+                x = (int)(long)monster["x"],
+                y = (int)(long)monster["y"],
+                floor = (int)(long)monster["floor"],
+                initiative = (int)(long)monster["initiative"],
+                display = new DisplayCharacter {
+                    character = (string)displayCharacter["character"],
+                    color = new Color((float)displayCharacter["colorR"], (float)displayCharacter["colorG"], (float)displayCharacter["colorB"]),
+                    bgColor = new Color((float)displayCharacter["bgColorR"], (float)displayCharacter["bgColorG"], (float)displayCharacter["bgColorB"])
+                }
+            };
+            Monster.instances.Add(monsterOutput);
+        }
+
+        foreach (var monster in Monster.instances) {
+            floors[monster.floor].monsters[monster.x, monster.y] = monster;
+        }
+    }
+
     private Dictionary<string, object> SerializePlayer() {
         var output = new Dictionary<string, object> {
             ["energy"] = Player.instance.energy,
@@ -109,6 +170,24 @@ public class Map : MonoBehaviour {
             ["justPlayed"] = SerializeCard(Player.instance.justPlayed)
         };
         return output;
+    }
+
+    private void DeserializePlayer(object rawData) {
+        var data = (JObject)rawData;
+        Player.instance.energy = (int)(long)data["energy"];
+        Player.instance.actions = (int)(long)data["actions"];
+        Player.instance.hp = (int)(long)data["hp"];
+        Player.instance.maxHp = (int)(long)data["maxHp"];
+        Player.instance.level = (int)(long)data["level"];
+        Player.instance.experience = (int)(long)data["experience"];
+        Player.instance.experienceToLevel = (int)(long)data["experienceToLevel"];
+        Player.instance.name = (string)data["name"];
+        DeserializeCardTemplates(data["cardTemplates"]);
+        Player.instance.deck = DeserializeCards(data["deck"]);
+        Player.instance.hand = DeserializeCards(data["hand"]);
+        Player.instance.discard = DeserializeCards(data["discard"]);
+        Player.instance.inPlay = DeserializeCards(data["inPlay"]);
+        Player.instance.justPlayed = DeserializeCard(data["justPlayed"]);
     }
 
     private List<Dictionary<string, object>> SerializeCardTemplates() {
@@ -132,9 +211,40 @@ public class Map : MonoBehaviour {
         return output;
     }
 
+    private void DeserializeCardTemplates(object rawData) {
+        var data = (JArray)rawData;
+        CardTemplate.instances.Clear();
+        foreach (var template in data) {
+            var effects = (JArray)template["effects"];
+            var cardOutput = new CardTemplate {
+                name = (string)template["name"],
+                cost = (int)(long)template["cost"],
+                text = (string)template["text"]
+            };
+            cardOutput.effects = new List<CardEffect>();
+            foreach (var effect in effects) {
+                cardOutput.effects.Add(new CardEffect {
+                    type = (string)effect["type"],
+                    value = (float)effect["value"]
+                });
+            }
+        }
+    }
+
     private List<int> SerializeCards(List<Card> cards) {
         var output = new List<int>();
         foreach (var card in cards) output.Add(SerializeCard(card));
+        return output;
+    }
+
+    private List<Card> DeserializeCards(object rawData) {
+        var data = (JArray)rawData;
+        var output = new List<Card>();
+        foreach (var card in data) {
+            output.Add(new Card {
+                template = CardTemplate.instances[(int)(long)card]
+            });
+        }
         return output;
     }
 
@@ -143,9 +253,30 @@ public class Map : MonoBehaviour {
         return CardTemplate.instances.IndexOf(card.template);
     }
 
-    public void Load() {
+    private Card DeserializeCard(object rawData) {
+        int data = (int)((JValue)rawData).ToObject(typeof(int));
+        if (data == -1) return null;
+        return new Card {
+            template = CardTemplate.instances[data]
+        };
+    }
+
+    public void Load(string filename) {
         //todo: load
+        var data = File.ReadAllText(filename);
+        var json = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
+        posX = (int)(long)json["posX"];
+        posY = (int)(long)json["posY"];
+        currentFloorNumber = (int)(long)json["currentFloorNumber"];
+        numFloors = (int)(long)json["numFloors"];
+        DeserializeFloors(json["floors"]);
+        currentFloor = floors[currentFloorNumber];
+        DeserializeMonsters(json["monsters"]);
+        DeserializePlayer(json["player"]);
+        loaded = true;
+        UserInterface.instance.SetUpCardPositions();
         //tint each map floor
+        foreach (var floor in floors) floor.TintMap();
     }
 
     private void BuildFloors() {

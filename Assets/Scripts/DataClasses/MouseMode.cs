@@ -8,5 +8,6 @@ public enum MouseMode {
     Default = 0,
     Targeting = 1,
     Animating = 2,
-    MainMenu = 3
+    MainMenu = 3,
+    LoadMenu = 4
 }

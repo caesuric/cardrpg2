@@ -29,12 +29,33 @@ public class Inputs : MonoBehaviour
     void Update() {
         if (cardDragged == -2) SlideCardBack();
         if (mouseMode == MouseMode.Animating) return;
-        if (Player.instance.hp <= 0) return;
+        if (Player.instance.hp <= 0 && mouseMode == MouseMode.Default) {
+            Map.instance.DeleteSave();
+            mouseMode = MouseMode.MainMenu;
+            MenuManager.instance.Draw();
+            return;
+        }
 
         if (mouseMode==MouseMode.MainMenu) {
             if (Input.GetMouseButtonUp(0) && MenuManager.instance.ClickedStart()) {
                 mouseMode = MouseMode.Default;
                 Map.instance.Draw();
+            }
+            if (Input.GetMouseButtonUp(0) && MenuManager.instance.ClickedLoad()) {
+                mouseMode = MouseMode.LoadMenu;
+                MenuManager.instance.DrawLoadMenu();
+            }
+            return;
+        }
+
+        if (mouseMode==MouseMode.LoadMenu) {
+            if (Input.GetMouseButtonUp(0)) {
+                var characterClicked = MenuManager.instance.CharacterClicked();
+                if (characterClicked!=null) {
+                    Map.instance.Load(characterClicked);
+                    mouseMode = MouseMode.Default;
+                    Map.instance.Draw();
+                }
             }
             return;
         }
