@@ -301,8 +301,8 @@ public class Map : MonoBehaviour {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
                 if (x == posX && y == posY) continue;
                 DisplayCharacter dc = null;
-                if ((Visible(x, y) || Seen(x, y)) && GetMonsters(x, y) != "") continue;
-                if ((Visible(x, y) || Seen(x, y)) && GetProjectiles(x, y) != "") continue;
+                if (Visible(x, y) && GetMonsters(x, y) != "") continue;
+                if (Visible(x, y) && GetProjectiles(x, y) != "") continue;
                 if (y - posY + halfHeight <= 15) continue;
                 if (x >= 0 && y >= 0 && x < MapFloor.xSize && y < MapFloor.ySize) dc = currentFloor.layout[x, y];
                 if (dc != null && Visible(x, y)) VirtualConsole.Set(x - posX + halfWidth, y - posY + halfHeight, dc.character, dc.color.r, dc.color.g, dc.color.b, dc.bgColor.r, dc.bgColor.g, dc.bgColor.b);
@@ -319,7 +319,7 @@ public class Map : MonoBehaviour {
         var halfHeight = ((VirtualConsole.instance.height - 15) / 2) + 15;
         for (int x = posX - halfWidth; x < posX + halfWidth; x++) {
             for (int y = posY - halfHeight; y < posY + halfHeight; y++) {
-                if ((Visible(x, y) || Seen(x, y)) && GetProjectiles(x, y) != "") continue;
+                if (Visible(x, y) && GetProjectiles(x, y) != "") continue;
                 if (GetMonsters(x, y) == "") continue;
                 DisplayCharacter dc = null;
                 if (x >= 0 && y >= 0 && x < MapFloor.xSize && y < MapFloor.ySize) dc = currentFloor.monsters[x, y].display;
