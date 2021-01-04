@@ -101,6 +101,7 @@ public class VirtualConsole : MonoBehaviour {
     public static void DrawBar(string text, int current, int maximum, int x, int y, int width, float textR = 1, float textG = 1, float textB = 1, float bgR = 0, float bgG = 0, float bgB = 0, float bgR2 = 0, float bgG2 = 0, float bgB2 = 0) {
         float percent = (float)current / maximum;
         int amount = (int)(percent * width);
+        for (int xPos = x; xPos < x + width; xPos++) Set(xPos, y, " ");
         Write(text, x, y, width, 1, textR, textG, textB);
         for (int xPos = x; xPos < x + width; xPos++) {
             if (xPos - x < amount) instance.backgroundBlocks[xPos, y + 1].color = new Color(bgR, bgG, bgB);

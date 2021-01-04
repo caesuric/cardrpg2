@@ -76,6 +76,10 @@ public class Map : MonoBehaviour {
             floorOutput["seen"] = seen;
             floorOutput["width"] = floor.layout.GetLength(0);
             floorOutput["height"] = floor.layout.GetLength(1);
+            floorOutput["startingX"] = floor.startingX;
+            floorOutput["startingY"] = floor.startingY;
+            floorOutput["endingX"] = floor.endingX;
+            floorOutput["endingY"] = floor.endingY;
             output.Add(floorOutput);
         }
         return output;
@@ -96,6 +100,10 @@ public class Map : MonoBehaviour {
                 }
             }
             floorNumber++;
+            floorOutput.startingX = (int)(long)floor["startingX"];
+            floorOutput.startingY = (int)(long)floor["startingY"];
+            floorOutput.endingX = (int)(long)floor["endingX"];
+            floorOutput.endingY = (int)(long)floor["endingY"];
             floors.Add(floorOutput);
         }
     }
