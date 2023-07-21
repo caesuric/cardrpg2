@@ -37,6 +37,21 @@ dotnet_diagnostic.IDE0011.severity = none
 # SA1520: Use braces consistently
 dotnet_diagnostic.SA1520.severity = none
 
+# S1104: Fields should not have public accessibility
+dotnet_diagnostic.S1104.severity = none
+
+# SA1401: Fields should be private
+dotnet_diagnostic.SA1401.severity = none
+
+# S2223: Non-constant static fields should not be visible
+dotnet_diagnostic.S2223.severity = none
+
+# S2696: Instance members should not write to "static" fields
+dotnet_diagnostic.S2696.severity = none
+
+# SA1202: Elements should be ordered by access
+dotnet_diagnostic.SA1202.severity = none
+
 [*.{cs,vb}]
 #### Naming styles ####
 

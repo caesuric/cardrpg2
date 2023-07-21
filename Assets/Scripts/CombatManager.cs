@@ -1,86 +1,110 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿namespace RoguelikeEngine {
+    using System.Collections.Generic;
+    using UnityEngine;
 
-public class CombatManager : MonoBehaviour {
-    public bool playerTurn = true;
-    public bool inCombat = false;
-    public static CombatManager instance = null;
-    public List<Monster> initiativeOrder = new List<Monster>();
-    public int playerInitiative = 0;
+    /// <summary>
+    /// Manages combat order.
+    /// </summary>
+    public class CombatManager : MonoBehaviour {
+        /// <summary>
+        /// Current singleton instance of the combat manager.
+        /// </summary>
+        public static CombatManager Instance = null;
 
-    void Start() {
-        instance = this;
-    }
+        /// <summary>
+        /// If it is the player's turn, this will be true.
+        /// </summary>
+        public bool PlayerTurn = true;
 
-    public void CheckIfInCombat() {
-        if (InCombat() && !inCombat) {
-            RollInitiative();
-            ActivateSurpriseRound();
-            playerTurn = true;
+        /// <summary>
+        /// If in combat, this will be true.
+        /// </summary>
+        public bool InCombatValue = false;
+
+        /// <summary>
+        /// Initiative order for monsters.
+        /// </summary>
+        public List<Monster> InitiativeOrder = new List<Monster>();
+
+        /// <summary>
+        /// The player's initiative count.
+        /// </summary>
+        public int PlayerInitiative = 0;
+
+        /// <summary>
+        /// Runs on game start.
+        /// </summary>
+        protected void Start() {
+            Instance = this;
+        }
+
+        /// <summary>
+        /// Checks if the player is in combat.
+        /// </summary>
+        public void CheckIfInCombat() {
+            if (InCombat() && !InCombatValue) {
+                RollInitiative();
+                ActivateSurpriseRound();
+                PlayerTurn = true;
+                Player.instance.actions = 4;
+                Player.instance.energy = 5;
+                InCombatValue = true;
+                Map.instance.Draw();
+            }
+            else if (!InCombat() && InCombatValue) {
+                if (Inputs.instance.mouseMode != MouseMode.Animating) Inputs.instance.mouseMode = MouseMode.Default;
+                while (Player.instance.hand.Count < 5) Player.instance.DrawCard();
+                Player.instance.actions = 4;
+                Player.instance.energy = 5;
+                UserInterface.instance.SetUpCardPositions();
+                InCombatValue = false;
+            }
+        }
+
+        /// <summary>
+        /// Triggers turns for all monsters.
+        /// </summary>
+        public void TriggerMonsterTurn() {
+            PlayerTurn = false;
+            foreach (var monster in InitiativeOrder) {
+                monster.Act();
+            }
             Player.instance.actions = 4;
-            Player.instance.energy = 5;
-            inCombat = true;
+            PlayerTurn = true;
             Map.instance.Draw();
         }
-        else if (!InCombat() && inCombat) {
-            if (Inputs.instance.mouseMode != MouseMode.Animating) Inputs.instance.mouseMode = MouseMode.Default;
-            while (Player.instance.hand.Count < 5) Player.instance.DrawCard();
-            Player.instance.actions = 4;
-            Player.instance.energy = 5;
-            UserInterface.instance.SetUpCardPositions();
-            inCombat = false;
-        }
-    }
 
-    private bool InCombat() {
-        if (Map.instance.currentFloor == null) return false;
-        for (int x = 0; x < Map.instance.currentFloor.monsters.GetLength(0); x++) {
-            for (int y = 0; y < Map.instance.currentFloor.monsters.GetLength(1); y++) {
-                if (Map.instance.currentFloor.monsters[x, y] == null) continue;
-                if (Map.instance.Visible(x, y)) return true;
+        private bool InCombat() {
+            if (Map.instance.currentFloor == null) return false;
+            for (int x = 0; x < Map.instance.currentFloor.monsters.GetLength(0); x++) {
+                for (int y = 0; y < Map.instance.currentFloor.monsters.GetLength(1); y++) {
+                    if (Map.instance.currentFloor.monsters[x, y] == null) continue;
+                    if (Map.instance.Visible(x, y)) return true;
+                }
+            }
+            return false;
+        }
+
+        private void RollInitiative() {
+            foreach (var monster in Monster.instances) if (monster.floor == Map.instance.currentFloorNumber) monster.initiative = Random.Range(0, 100);
+            PlayerInitiative = Random.Range(0, 100);
+            InitiativeOrder.Clear();
+            foreach (var monster in Monster.instances) if (monster.floor == Map.instance.currentFloorNumber) InitiativeOrder.Add(monster);
+            InitiativeOrder.Sort(new MonsterInitiativeComparer());
+        }
+
+        private void ActivateSurpriseRound() {
+            var tempEnd = new List<Monster>();
+            foreach (var monster in InitiativeOrder) {
+                if (monster.initiative < PlayerInitiative) {
+                    monster.Act();
+                    tempEnd.Add(monster);
+                }
+            }
+            foreach (var monster in tempEnd) {
+                InitiativeOrder.Remove(monster);
+                InitiativeOrder.Add(monster);
             }
         }
-        return false;
-    }
-
-    public void TriggerMonsterTurn() {
-        playerTurn = false;
-        foreach (var monster in initiativeOrder) {
-            monster.Act();
-        }
-        Player.instance.actions = 4;
-        playerTurn = true;
-        Map.instance.Draw();
-    }
-
-    private void RollInitiative() {
-        foreach (var monster in Monster.instances) if (monster.floor==Map.instance.currentFloorNumber) monster.initiative = Random.Range(0, 100);
-        playerInitiative = Random.Range(0, 100);
-        initiativeOrder.Clear();
-        foreach (var monster in Monster.instances) if (monster.floor==Map.instance.currentFloorNumber) initiativeOrder.Add(monster);
-        initiativeOrder.Sort(new MonsterInitiativeComparer());
-    }
-
-    private void ActivateSurpriseRound() {
-        var tempEnd = new List<Monster>();
-        foreach (var monster in initiativeOrder) {
-            if (monster.initiative < playerInitiative) {
-                monster.Act();
-                tempEnd.Add(monster);
-            }
-        }
-        foreach (var monster in tempEnd) {
-            initiativeOrder.Remove(monster);
-            initiativeOrder.Add(monster);
-        }
-    }
-}
-
-public class MonsterInitiativeComparer : IComparer<Monster> {
-    public int Compare(Monster m1, Monster m2) {
-        if (m1.initiative < m2.initiative) return -1;
-        else if (m1.initiative > m2.initiative) return 1;
-        else return 0;
     }
 }
