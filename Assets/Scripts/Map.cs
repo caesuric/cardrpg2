@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using System.IO;
@@ -10,7 +9,7 @@ public class Map : MonoBehaviour {
     public int posY = 0;
     public int currentFloorNumber = 0;
     public MapFloor currentFloor = null;
-    public List<MapFloor> floors = new List<MapFloor>();
+    public List<MapFloor> floors = new();
     public int numFloors = 5;
     private bool initialized = false;
     private bool loaded = false;
@@ -227,9 +226,9 @@ public class Map : MonoBehaviour {
             var cardOutput = new CardTemplate {
                 name = (string)template["name"],
                 cost = (int)(long)template["cost"],
-                text = (string)template["text"]
+                text = (string)template["text"],
+                effects = new List<CardEffect>()
             };
-            cardOutput.effects = new List<CardEffect>();
             foreach (var effect in effects) {
                 cardOutput.effects.Add(new CardEffect {
                     type = (string)effect["type"],
